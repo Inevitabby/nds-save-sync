@@ -42,18 +42,19 @@ class _OnboardingState extends State<Onboarding> {
 
       pages: [
         // PAGE 1: Hardware Selector
+        // TODO Advance to the next slide after clicking a button.
         _screen(
           title: "Select Console",
           subtitle: "Connection methods vary by generation.",
           // image: Icon(Icons.devices_other, size: 80, color: colorScheme.primary),
           children: [
-            selectionCard(
+            _selectionCard(
               title: "Legacy Dual-Screen",
               subtitle: "Gen 4 (NDS/i/Lite)",
               type: ConsoleType.legacy,
             ),
             const SizedBox(height: 8),
-            selectionCard(
+            _selectionCard(
               title: "Modern Dual-Screen",
               subtitle: "Gen 5 (3D/2D)",
               type: ConsoleType.modern,
@@ -70,9 +71,9 @@ class _OnboardingState extends State<Onboarding> {
             children: [
               Text("Set Hotspot Settings:"),
               Divider(),
-              step(1, "Open Android Hotspot Settings"),
-              step(2, "Set Band to \"2.4 GHz\""),
-              step(3, "Set Security to \"None/Open\""),
+              _step(1, "Open Android Hotspot Settings"),
+              _step(2, "Set Band to \"2.4 GHz\""),
+              _step(3, "Set Security to \"None/Open\""),
               const Spacer(),
               Text(
                 "Gen 4 consoles cannot see WPA2 Wi-Fi\n\n(Remember to disable after use)",
@@ -89,7 +90,7 @@ class _OnboardingState extends State<Onboarding> {
             // icon: Icon(Icons.wifi, size: 80, color: colorScheme.primary),
             children: [
               Text(
-                "Note: 5GHz is not supported by the console\n\n(If you don't have 2GHz, do Legacy Setup)",
+                "Note: 5GHz is not supported by the console\n\n(If you don't have 2GHz, do Legacy Setup)", // TODO a button for this that easily takes you back?
                 style: Theme.of(context).textTheme.bodySmall,
                 textAlign: TextAlign.center,
               ),
@@ -97,7 +98,7 @@ class _OnboardingState extends State<Onboarding> {
           )
         else
           _screen(
-            // TODO don't let the user scroll here unless they've selected an option (???)
+            // TODO Don't let the user scroll here unless they've selected an option
             title: "Select System",
             subtitle: "Please go back and select a system type.",
           ),
@@ -113,9 +114,9 @@ class _OnboardingState extends State<Onboarding> {
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    checkItem("FTP Server running on console"),
-                    checkItem("Console displays IP address"),
-                    checkItem("Console screen is ON"),
+                    _checkItem("FTP Server running on console"),
+                    _checkItem("Console displays IP address"),
+                    _checkItem("Console screen is ON"),
                   ],
                 ),
               ),
@@ -145,7 +146,8 @@ class _OnboardingState extends State<Onboarding> {
     );
   }
 
-  Widget selectionCard({
+  // TODO Make below helpers stateless widgets? (measure performance)
+  Widget _selectionCard({
     required String title,
     required String subtitle,
     required ConsoleType type,
@@ -170,7 +172,7 @@ class _OnboardingState extends State<Onboarding> {
     );
   }
 
-  Widget step(int number, String text) {
+  Widget _step(int number, String text) {
     return ListTile(
       leading: CircleAvatar(
         radius: 12,
@@ -182,7 +184,7 @@ class _OnboardingState extends State<Onboarding> {
   }
 
   // TODO Reconsider design (potentially misleading as a clickable or self-updating checklist)
-  Widget checkItem(String text) {
+  Widget _checkItem(String text) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
@@ -195,3 +197,4 @@ class _OnboardingState extends State<Onboarding> {
     );
   }
 }
+
