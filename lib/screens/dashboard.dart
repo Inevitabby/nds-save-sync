@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
 // import 'package:url_launcher/url_launcher.dart';
-
-class Dashboard extends StatefulWidget {
-  const Dashboard({super.key});
-
-  @override
-  State<Dashboard> createState() => _DashboardState();
-}
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nds_save_sync/providers/dashboard_controller.dart';
 
 // STATES
 // 
@@ -40,14 +35,12 @@ class Dashboard extends StatefulWidget {
 // - Left: Save Archive
 // - Right: Settings xor Debug (Version Information and Logs (?))
 
-enum DashboardState { idle, scanning, connected, working, success }
-
-class _DashboardState extends State<Dashboard> {
-  DashboardState _dashboardState = DashboardState.idle;
-  String? _saveDir;
+class Dashboard extends ConsumerWidget {
+  const Dashboard({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dashboardState = ref.watch(dashboardProvider);
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: SafeArea(

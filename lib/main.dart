@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
-import './screens/onboarding.dart';
-import './screens/dashboard.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nds_save_sync/screens/onboarding.dart';
+import 'package:nds_save_sync/screens/dashboard.dart';
 
 void main() {
-  runApp(const App());
+  runApp(
+    const ProviderScope(
+      child: App()
+    )
+  );
 }
 
 class App extends StatelessWidget {
