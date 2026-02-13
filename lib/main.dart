@@ -13,7 +13,7 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: "Flutter Demo",
       theme: ThemeData.dark(),
-      home: Onboarding(),
+      home: Dashboard(),
     );
   }
 }
