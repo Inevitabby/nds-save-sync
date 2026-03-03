@@ -29,6 +29,22 @@ class DashboardModel {
 
 // 2. Controller
 class DashboardController extends Notifier<DashboardModel> {
+  Future<void> onPressed() async {
+    switch (state.state) {
+      case DashboardState.idle:
+        await scan();
+        break;
+      case DashboardState.connected:
+        await sync();
+        break;
+      case DashboardState.success:
+      case DashboardState.scanning:
+      case DashboardState.working:
+        reset();
+        break;
+    }
+  }
+
   @override
   DashboardModel build() {
     return const DashboardModel();
@@ -50,6 +66,10 @@ class DashboardController extends Notifier<DashboardModel> {
   Future<void> sync() async {
     // TODO Download files from setSaveDir
     //      It's very finicky, best bet is to copy behavior of https://github.com/Inevitabby/DS-OTA-Backup
+
+    state = state.copyWith(state: DashboardState.working);
+    await Future.delayed(const Duration(seconds: 2));
+    state = state.copyWith(state: DashboardState.success);
   }
 
   void reset() { state = const DashboardModel(); }
@@ -57,3 +77,4 @@ class DashboardController extends Notifier<DashboardModel> {
 
 // 3. Provider
 final dashboardProvider = NotifierProvider<DashboardController, DashboardModel>(DashboardController.new);
+

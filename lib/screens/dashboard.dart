@@ -42,6 +42,7 @@ class Dashboard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboardState = ref.watch(dashboardProvider);
+    final controller = ref.read(dashboardProvider.notifier);
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: SafeArea(
@@ -58,7 +59,9 @@ class Dashboard extends ConsumerWidget {
               flex: 4,
               child: Container(
                 decoration: BoxDecoration(border: BoxBorder.all(color: colorScheme.primary ) ),
-                child: const Center(child: Text("Hero")),
+                child: Center(child: 
+                  TextButton(onPressed: () => controller.onPressed(), child: Text(_getText(dashboardState.state)))
+                ),
               ),
             ),
             Expanded(
@@ -79,5 +82,20 @@ class Dashboard extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+String _getText(DashboardState state) {
+  switch (state) {
+    case DashboardState.idle:
+      return "IDLE";
+    case DashboardState.scanning:
+      return "SCANNING";
+    case DashboardState.connected:
+      return "CONNECTED";
+    case DashboardState.working:
+      return "WORKING";
+    case DashboardState.success:
+      return "SUCCESS";
   }
 }
