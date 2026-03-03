@@ -9,7 +9,7 @@ import 'package:nds_save_sync/providers/dashboard_controller.dart';
 //  - Condition: Initial state, lastAddr is null
 //  - Hero: "Search for Device" (TODO wording)
 // 
-// 2. Scanning:
+// 2. Connecting:
 //  - Condition: Button pressed OR app started with lastAddr not null
 //  - Hero: Some loading indicator "Connecting to your DS..." (TODO this wording is misleading)
 //  - Fail:
@@ -24,7 +24,7 @@ import 'package:nds_save_sync/providers/dashboard_controller.dart';
 //  - Case B: Ready (saveDir not null)_
 //    - Hero: "Tap to Sync"
 // 
-// 4. Working
+// 4. Syncing
 //  - Condition: Sync started
 //  - Hero: Some sort of live log/progress indicator. The *bulk* of time will be waiting on the crap link so this'll need to be good. (TODO Design this)
 // 
@@ -89,12 +89,12 @@ String _getText(DashboardState state) {
   switch (state) {
     case DashboardState.idle:
       return "IDLE";
-    case DashboardState.scanning:
-      return "SCANNING";
+    case DashboardState.connecting:
+      return "CONNECTING";
     case DashboardState.connected:
       return "CONNECTED";
-    case DashboardState.working:
-      return "WORKING";
+    case DashboardState.syncing:
+      return "SYNCING";
     case DashboardState.success:
       return "SUCCESS";
   }

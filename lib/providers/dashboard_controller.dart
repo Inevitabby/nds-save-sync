@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // 1. State
-enum DashboardState { idle, scanning, connected, working, success }
+// TODO Error
+enum DashboardState { idle, connecting, connected, syncing, success }
 
 class DashboardModel {
   final DashboardState state;
@@ -38,8 +39,8 @@ class DashboardController extends Notifier<DashboardModel> {
         await sync();
         break;
       case DashboardState.success:
-      case DashboardState.scanning:
-      case DashboardState.working:
+      case DashboardState.connecting:
+      case DashboardState.syncing:
         reset();
         break;
     }
@@ -67,7 +68,7 @@ class DashboardController extends Notifier<DashboardModel> {
     // TODO Download files from setSaveDir
     //      It's very finicky, best bet is to copy behavior of https://github.com/Inevitabby/DS-OTA-Backup
 
-    state = state.copyWith(state: DashboardState.working);
+    state = state.copyWith(state: DashboardState.syncing);
     await Future.delayed(const Duration(seconds: 2));
     state = state.copyWith(state: DashboardState.success);
   }
