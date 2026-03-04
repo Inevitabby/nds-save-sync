@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'modal.dart';
@@ -7,7 +8,9 @@ class IpEntry extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ipController = useTextEditingController(text: "");
+    final ipController = useTextEditingController(
+      text: kDebugMode ? "10.0.2.2" : "", // TODO What if the user makes a typo? They won't see it.
+    );
     final portController = useTextEditingController(text: "5000");
 
     return Modal(

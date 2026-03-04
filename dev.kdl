@@ -1,0 +1,21 @@
+// My personal developer workflow
+// 
+// USAGE:
+// 	zellij --layout dev.kdl
+layout {
+    cwd "."
+    pane split_direction="horizontal" {
+        pane command="bash" {
+            name "emulator"
+            args "-c" "flutter emulators --launch Pixel_34; read -p 'Press Enter to close everything.'; zellij action close-tab"
+        }
+        pane command="bash" {
+            name "flutter"
+            args "-c" "adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done' && trap 'kill 0' SIGINT && flutter run & PID=$! && find lib/ -name '*.dart' | entr -p kill -USR1 $PID"
+        }
+        pane command="bash" {
+            name "ftp"
+            args "-c" "./test/mock_server.sh"
+        }
+    }
+}
