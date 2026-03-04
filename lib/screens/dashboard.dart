@@ -1,27 +1,24 @@
 import 'package:flutter/material.dart';
-// import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nds_save_sync/modals/browser.dart';
+import 'package:nds_save_sync/modals/ip_entry.dart';
 import 'package:nds_save_sync/providers/dashboard_controller.dart';
 
 // STATES
 // 
 // 1. Idle (Disconnected):
-//  - Condition: Initial state, lastAddr is null
+//  - Condition: Initial state
 //  - Hero: "Search for Device" (TODO wording)
 // 
 // 2. Connecting:
-//  - Condition: Button pressed OR app started with lastAddr not null
 //  - Hero: Some loading indicator "Connecting to your DS..." (TODO this wording is misleading)
-//  - Fail:
-//    - Condition: User not on WiFi OR Hotspot (instafail)
-//    -            OR we couldn't find the DS on WiFi/Hotspot subnet 
 //    - Hero: TODO (Should there be two different fail messages? One that is a gentle like modal with a few bullet points or something like, "Couldn't find DS 1. Is your phone and DS on the same hotspot or WiFi? 2. If your DS's FTP app running? etc." And have like two buttons like, "Let me try again" or "Let me enter the IP manually")
 // 
 // 3. Connected:
 //  - Condition: Connection established to DS.
-//  - Case A: First-Connection (saveDir is null)
+//  - Case A: First-Connection
 //    - Hero: Slide-up modal showing FTP directory browser, user finds and picks saveDir folder
-//  - Case B: Ready (saveDir not null)_
+//  - Case B: Ready
 //    - Hero: "Tap to Sync"
 // 
 // 4. Syncing
@@ -39,10 +36,67 @@ import 'package:nds_save_sync/providers/dashboard_controller.dart';
 class Dashboard extends ConsumerWidget {
   const Dashboard({super.key});
 
+  Future<void> _onPressed(
+    BuildContext context,
+    WidgetRef ref,
+    DashboardModel dashboardState,
+  ) async {
+    final controller = ref.read(dashboardProvider.notifier);
+
+    switch (dashboardState.state) {
+      case DashboardState.idle:
+        // Connect to FTP server
+        if (dashboardState.lastIp != null && dashboardState.lastPort != null) {
+          if (await controller.connect(dashboardState.lastIp!, dashboardState.lastPort!)) break;
+          // TODO This case is when we failed to connect to saved IP. Log it something here.
+        }
+        // Fallback: Ask user for FTP server info
+        final result = await showDialog<Map<String, dynamic>>(
+          context: context,
+          barrierDismissible:
+              false, // Forces user to use buttons (Connect/Cancel)
+          builder: (_) => Dialog(
+            insetPadding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: const IpEntry(),
+            ),
+          ),
+        );
+        if (result != null) controller.connect(result['ip'], result['port']);
+        break;
+      case DashboardState.connecting:
+        break; // ignore
+      case DashboardState.connected:
+        if (dashboardState.saveDir == null) {
+          await controller.changeDir("/");
+          final selectedPath = await showDialog<String>(
+            context: context,
+            builder: (_) => Dialog(
+              insetPadding: const EdgeInsets.all(16),
+              child: const Browser(),
+            ),
+          );
+          if (selectedPath == null) break;
+          controller.setSaveDir(selectedPath);
+          // TODO ...
+        } else {
+          // 3. Start Syncing if connected and directory is set
+          // controller.sync();
+        }
+        break;
+      case DashboardState.syncing:
+      case DashboardState.success:
+        break; // ignore
+      case DashboardState.error: // TODO only for debugging
+        controller.reset();
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboardState = ref.watch(dashboardProvider);
-    final controller = ref.read(dashboardProvider.notifier);
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: SafeArea(
@@ -60,7 +114,7 @@ class Dashboard extends ConsumerWidget {
               child: Container(
                 decoration: BoxDecoration(border: BoxBorder.all(color: colorScheme.primary ) ),
                 child: Center(child: 
-                  TextButton(onPressed: () => controller.onPressed(), child: Text(_getText(dashboardState.state)))
+                  TextButton(onPressed: () => _onPressed(context, ref, dashboardState), child: Text(_getText(dashboardState.state)))
                 ),
               ),
             ),
@@ -88,14 +142,16 @@ class Dashboard extends ConsumerWidget {
 String _getText(DashboardState state) {
   switch (state) {
     case DashboardState.idle:
-      return "IDLE";
+      return "IDLE (Tap to Connect)";
     case DashboardState.connecting:
-      return "CONNECTING";
+      return "CONNECTING...";
     case DashboardState.connected:
-      return "CONNECTED";
+      return "CONNECTED (Tap to Sync)";
     case DashboardState.syncing:
-      return "SYNCING";
+      return "SYNCING...";
     case DashboardState.success:
-      return "SUCCESS";
+      return "SUCCESS"; // TODO some sort of indicator to view Save Archive
+    case DashboardState.error:
+      return "ERROR (Tap to Retry)";
   }
 }
