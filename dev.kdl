@@ -13,7 +13,7 @@ layout {
         }
         pane command="bash" {
             name "flutter"
-            args "-c" "adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done' && trap 'kill 0' SIGINT && flutter run & PID=$! && find lib/ -name '*.dart' | entr -p kill -USR1 $PID"
+            args "-c" "adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done' && (trap 'kill 0' SIGINT; flutter run & PID=$!; find lib/ -name '*.dart' | entr -p kill -USR1 $PID)"
         }
     }
 }
