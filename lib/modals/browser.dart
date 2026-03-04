@@ -23,6 +23,8 @@ class _BrowserState extends ConsumerState<Browser> {
     _loadDir();
   }
 
+  int get _saveCount => _files.where((f) => _isSave(f.name)).length;
+
   Future<void> _loadDir() async {
     setState(() => _loading = true);
     final entries = await ref.read(dashboardProvider.notifier).list();
@@ -43,6 +45,8 @@ setState(() => _currentPath = dir);
     }
   }
 
+  bool _isSave(String name) => p.extension(name.toLowerCase()) == ".sav";
+
   // TODO Display count of detected save files in current folder.
   // TODO Is some cleanup w.r.t. FTPConnect needed when this widget is destroyed?
   // TODO Early on, when I only did .connect() and .list() I managed to freeze the FTP server, no idea why.
@@ -50,37 +54,64 @@ setState(() => _currentPath = dir);
   @override
   Widget build(BuildContext context) {
     return Modal(
-      title: "Select Save Directory",
+      title: "Select Backup Folder",
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          const Divider(height: 16),
           ConstrainedBox(
             constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.5,
+              maxHeight: MediaQuery.of(context).size.height * 0.55,
             ),
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: _files.length,
-                    itemBuilder: (context, index) => _entry(_files[index]),
+                : Scrollbar(
+                    thumbVisibility: true,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: _files.length + 1,
+                      itemBuilder: (context, index) {
+                        if (index == 0) {
+                          if (_currentPath == "/") return const SizedBox.shrink();
+                          return ListTile(
+                            leading: const Icon(Icons.arrow_back),
+                            title: const Text(".."),
+                            onTap: () => _navigate(".."),
+                          );
+                        }
+                        return _entry(_files[index - 1]);
+                      },
+                    ),
                   ),
           ),
           const Divider(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  _currentPath,
+          Padding(
+            padding: const EdgeInsetsGeometry.symmetric(horizontal: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_currentPath),
+                      Text(
+                        "$_saveCount saves are here",
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              FilledButton(
-                onPressed: () => Navigator.pop(context, _currentPath),
-                child: const Text("Select Here"),
-              ),
-            ],
+                const SizedBox(width: 8),
+                FilledButton(
+                  onPressed: () => Navigator.pop(context, _currentPath),
+                  child: const Text("Use This Folder"),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -88,20 +119,20 @@ setState(() => _currentPath = dir);
   }
 
   Widget _entry(FTPEntry file) {
+    final isSave = _isSave(file.name);
+    final dim = !isSave && (_saveCount > 0);
+
     IconData getIcon(FTPEntry file) {
       if (file.type == FTPEntryType.dir) return Icons.folder;
-      switch (p.extension(file.name.toLowerCase())) {
-        case ".sav": // Saves
-          return Icons.videogame_asset;
-        default: 
-          return Icons.insert_drive_file;
-      }
-    } 
+      return isSave
+          ? Icons.save
+          : Icons.insert_drive_file;
+    }
 
-    return ListTile(
+    return Opacity(opacity: dim ? 0.7 : 1, child: ListTile(
       leading: Icon(getIcon(file)),
       title: Text(file.name),
       onTap: file.type == FTPEntryType.dir ? () => _navigate(file.name) : null,
-    );
+    ));
   }
 }
