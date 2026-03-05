@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ftpconnect/ftpconnect.dart';
-import 'package:nds_save_sync/providers/dashboard_controller.dart';
+import 'package:nds_save_sync/modals/modal.dart';
+import 'package:nds_save_sync/providers.dart';
 import 'package:path/path.dart' as p;
-import 'modal.dart';
 
 class Browser extends ConsumerStatefulWidget {
   const Browser({super.key});
@@ -27,7 +27,7 @@ class _BrowserState extends ConsumerState<Browser> {
 
   Future<void> _loadDir() async {
     setState(() => _loading = true);
-    final entries = await ref.read(dashboardProvider.notifier).list();
+    final entries = await ref.read(appProvider).ftp.list();
     if (mounted) {
       setState(() {
         _files = entries;
@@ -37,9 +37,9 @@ class _BrowserState extends ConsumerState<Browser> {
   }
 
   Future<void> _navigate(String dir) async {
-    final success = await ref.read(dashboardProvider.notifier).changeDir(dir);
+    final success = await ref.read(appProvider).ftp.changeDir(dir);
     if (success) {
-        final dir = await ref.read(dashboardProvider.notifier).currentDir();
+        final dir = await ref.read(appProvider).ftp.currentDir();
 setState(() => _currentPath = dir);
         await _loadDir();
     }

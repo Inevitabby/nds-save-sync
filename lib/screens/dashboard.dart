@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nds_save_sync/modals/browser.dart';
 import 'package:nds_save_sync/modals/ip_entry.dart';
-import 'package:nds_save_sync/providers/dashboard_controller.dart';
+import 'package:nds_save_sync/providers.dart';
 
 // STATES
 // 
@@ -40,15 +40,17 @@ class Dashboard extends ConsumerWidget {
   Future<void> _onPressed(
     BuildContext context,
     WidgetRef ref,
-    DashboardModel dashboardState,
+    AppModel appState,
   ) async {
-    final controller = ref.read(dashboardProvider.notifier);
+    final controller = ref.read(appProvider.notifier);
 
-    switch (dashboardState.state) {
-      case DashboardState.idle:
+    switch (appState.syncState) {
+      case SyncState.idle:
         // Connect to FTP server
-        if (dashboardState.lastIp != null && dashboardState.lastPort != null) {
-          if (await controller.connect(dashboardState.lastIp!, dashboardState.lastPort!)) break;
+        if (appState.lastIp != null && appState.lastPort != null) {
+          if (await controller.connect(appState.lastIp!, appState.lastPort!)) {
+            break;
+          }
           // TODO This case is when we failed to connect to saved IP. Log it something here.
         }
         // Special: Ask user for FTP server info
@@ -63,40 +65,43 @@ class Dashboard extends ConsumerWidget {
             ),
           ),
         );
-        if (result != null) controller.connect(result['ip'], result['port']);
-        break;
-      case DashboardState.connecting:
-        break; // ignore
-      case DashboardState.connected:
-        if (dashboardState.saveDir == null) {
-          await controller.changeDir("/");
-          final selectedPath = await showDialog<String>(
-            context: context,
-            builder: (_) => Dialog(
-              insetPadding: const EdgeInsets.all(16),
-              child: const Browser(),
-            ),
-          );
-          if (selectedPath == null) break;
-          controller.setSaveDir(selectedPath);
-          // TODO ...
-        } else {
-          // 3. Start Syncing if connected and directory is set
-          // controller.sync();
+        if (result != null) {
+          controller.connect(result['ip'], result['port']);
         }
         break;
-      case DashboardState.syncing:
-      case DashboardState.success:
+      case SyncState.connecting:
         break; // ignore
-      case DashboardState.error: // TODO only for debugging
+      case SyncState.connected:
+        if (appState.saveDir != null) {
+          controller.sync();
+          break;
+        }
+        // Special: Pick Save Folder
+        await appState.ftp.changeDir('/');
+        final selectedPath = await showDialog<String>(
+          context: context,
+          builder: (_) => const Dialog(
+            insetPadding: EdgeInsets.all(16),
+            child: Browser(),
+          ),
+        );
+        if (selectedPath == null) break;
+        controller.setSaveDir(selectedPath);
+        controller.sync();
+        break;
+      case SyncState.syncing:
+      case SyncState.success:
+        break; // ignore
+      case SyncState.error: // TODO only for debugging
         controller.reset();
         break;
+
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dashboardState = ref.watch(dashboardProvider);
+    final appState = ref.watch(appProvider);
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: SafeArea(
@@ -114,7 +119,7 @@ class Dashboard extends ConsumerWidget {
               child: Container(
                 decoration: BoxDecoration(border: BoxBorder.all(color: colorScheme.primary ) ),
                 child: Center(child: 
-                  TextButton(onPressed: () => _onPressed(context, ref, dashboardState), child: Text(_getText(dashboardState.state)))
+                  TextButton(onPressed: () => _onPressed(context, ref, appState), child: Text(_getText(appState.syncState)))
                 ),
               ),
             ),
@@ -139,19 +144,19 @@ class Dashboard extends ConsumerWidget {
   }
 }
 
-String _getText(DashboardState state) {
+String _getText(SyncState state) {
   switch (state) {
-    case DashboardState.idle:
-      return "IDLE (Tap to Connect)";
-    case DashboardState.connecting:
-      return "CONNECTING...";
-    case DashboardState.connected:
-      return "CONNECTED (Tap to Sync)";
-    case DashboardState.syncing:
-      return "SYNCING...";
-    case DashboardState.success:
-      return "SUCCESS"; // TODO some sort of indicator to view Save Archive
-    case DashboardState.error:
-      return "ERROR (Tap to Retry)";
+    case SyncState.idle:
+      return 'IDLE (Tap to Connect)';
+    case SyncState.connecting:
+      return 'CONNECTING...';
+    case SyncState.connected:
+      return 'CONNECTED (Tap to Sync)';
+    case SyncState.syncing:
+      return 'SYNCING...';
+    case SyncState.success:
+      return 'SUCCESS'; // TODO some sort of indicator to view Save Archive
+    case SyncState.error:
+      return 'ERROR (Tap to Retry)';
   }
 }
