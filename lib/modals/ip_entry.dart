@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'modal.dart';
+import 'package:nds_save_sync/modals/modal.dart';
 
 class IpEntry extends HookWidget {
   const IpEntry({super.key});
@@ -9,12 +9,14 @@ class IpEntry extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final ipController = useTextEditingController(
-      text: kDebugMode ? "10.0.2.2" : "", // TODO What if the user makes a typo? They won't see it.
+      text: kDebugMode
+          ? '10.0.2.2'
+          : '', // TODO What if the user makes a typo? They won't see it.
     );
-    final portController = useTextEditingController(text: "5000");
+    final portController = useTextEditingController(text: '5000');
 
     return Modal(
-      title: "Connect to FTP Server",
+      title: 'Connect to FTP Server',
       resizeForKeyboard: true,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -22,13 +24,19 @@ class IpEntry extends HookWidget {
         children: [
           TextField(
             controller: ipController,
-            decoration: const InputDecoration(labelText: "IP Address", border: OutlineInputBorder()),
+            decoration: const InputDecoration(
+              labelText: 'IP Address',
+              border: OutlineInputBorder(),
+            ),
             keyboardType: TextInputType.number,
           ),
           const SizedBox(height: 10),
           TextField(
             controller: portController,
-            decoration: const InputDecoration(labelText: "Port", border: OutlineInputBorder()),
+            decoration: const InputDecoration(
+              labelText: 'Port',
+              border: OutlineInputBorder(),
+            ),
             keyboardType: TextInputType.number,
           ),
           const SizedBox(height: 16),
@@ -37,7 +45,7 @@ class IpEntry extends HookWidget {
               'ip': ipController.text,
               'port': int.tryParse(portController.text) ?? 5000,
             }),
-            child: const Text("Connect"),
+            child: const Text('Connect'),
           ),
         ],
       ),

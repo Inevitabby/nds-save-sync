@@ -45,16 +45,14 @@ setState(() => _currentPath = dir);
     }
   }
 
-  bool _isSave(String name) => p.extension(name.toLowerCase()) == ".sav";
+  bool _isSave(String name) => p.extension(name.toLowerCase()) == '.sav';
 
-  // TODO Display count of detected save files in current folder.
   // TODO Is some cleanup w.r.t. FTPConnect needed when this widget is destroyed?
-  // TODO Early on, when I only did .connect() and .list() I managed to freeze the FTP server, no idea why.
-  // TODO Add a ".." entry, and also hook up the phone's back button to it
+  // TODO Should phone back button be hooked-up to navigating backwards whenb not at root?
   @override
   Widget build(BuildContext context) {
     return Modal(
-      title: "Select Backup Folder",
+      title: 'Select Backup Folder',
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -73,11 +71,11 @@ setState(() => _currentPath = dir);
                       itemCount: _files.length + 1,
                       itemBuilder: (context, index) {
                         if (index == 0) {
-                          if (_currentPath == "/") return const SizedBox.shrink();
+                          if (_currentPath == '/') return const SizedBox.shrink();
                           return ListTile(
                             leading: const Icon(Icons.arrow_back),
-                            title: const Text(".."),
-                            onTap: () => _navigate(".."),
+                            title: const Text('..'),
+                            onTap: () => _navigate('..'),
                           );
                         }
                         return _entry(_files[index - 1]);
@@ -97,7 +95,7 @@ setState(() => _currentPath = dir);
                     children: [
                       Text(_currentPath),
                       Text(
-                        "$_saveCount saves are here",
+                        '$_saveCount saves are here',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -108,7 +106,7 @@ setState(() => _currentPath = dir);
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: () => Navigator.pop(context, _currentPath),
-                  child: const Text("Use This Folder"),
+                  child: const Text('Use This Folder'),
                 ),
               ],
             ),

@@ -16,7 +16,7 @@ class _OnboardingState extends State<Onboarding> {
   ConsoleType _selectedConsole = ConsoleType.unknown;
 
   Future<void> _launchHelpUrl() async {
-    final Uri url = Uri.parse(
+    final url = Uri.parse(
       'https://github.com/inevitabby/nds-save-sync/wiki/',
     );
     if (!await launchUrl(url)) {
@@ -35,28 +35,28 @@ class _OnboardingState extends State<Onboarding> {
       next: const Icon(Icons.arrow_forward),
       back: const Icon(Icons.arrow_back),
       showBackButton: true,
-      done: const Text("Finish", style: TextStyle(fontWeight: FontWeight.bold)),
+      done: const Text('Finish', style: TextStyle(fontWeight: FontWeight.bold)),
       onDone: () {
         // TODO: Navigate to Dashboard
       },
 
       pages: [
         // PAGE 1: Hardware Selector
-        // TODO Advance to the next slide after clicking a button.
+        // TODOAdvance to the next slide after clicking a button.
         _screen(
-          title: "Select Console",
-          subtitle: "Connection methods vary by generation.",
+          title: 'Select Console',
+          subtitle: 'Connection methods vary by generation.',
           // image: Icon(Icons.devices_other, size: 80, color: colorScheme.primary),
           children: [
             _selectionCard(
-              title: "Legacy Dual-Screen",
-              subtitle: "Gen 4 (NDS/i/Lite)",
+              title: 'Legacy Dual-Screen',
+              subtitle: 'Gen 4 (NDS/i/Lite)',
               type: ConsoleType.legacy,
             ),
             const SizedBox(height: 8),
             _selectionCard(
-              title: "Modern Dual-Screen",
-              subtitle: "Gen 5 (3D/2D)",
+              title: 'Modern Dual-Screen',
+              subtitle: 'Gen 5 (3D/2D)',
               type: ConsoleType.modern,
             ),
           ],
@@ -65,18 +65,18 @@ class _OnboardingState extends State<Onboarding> {
         // PAGE 2: Network Instructions
         if (_selectedConsole == ConsoleType.legacy)
           _screen(
-            title: "Legacy Setup",
-            subtitle: "Set up a Hotspot ",
+            title: 'Legacy Setup',
+            subtitle: 'Set up a Hotspot ',
             // icon: Icon(Icons.wifi_lock, size: 80, color: colorScheme.error),
             children: [
-              Text("Set Hotspot Settings:"),
-              Divider(),
-              _step(1, "Open Android Hotspot Settings"),
-              _step(2, "Set Band to \"2.4 GHz\""),
-              _step(3, "Set Security to \"None/Open\""),
+              const Text('Set Hotspot Settings:'),
+              const Divider(),
+              _step(1, 'Open Android Hotspot Settings'),
+              _step(2, 'Set Band to "2.4 GHz"'),
+              _step(3, 'Set Security to "None/Open"'),
               const Spacer(),
               Text(
-                "Gen 4 consoles cannot see WPA2 Wi-Fi\n\n(Remember to disable after use)",
+                'Gen 4 consoles cannot see WPA2 Wi-Fi\n\n(Remember to disable after use)',
                 style: Theme.of(context).textTheme.bodySmall,
                 textAlign: TextAlign.center,
               ),
@@ -84,13 +84,13 @@ class _OnboardingState extends State<Onboarding> {
           )
         else if (_selectedConsole == ConsoleType.modern)
           _screen(
-            title: "Modern Setup",
+            title: 'Modern Setup',
             subtitle:
-                "Ensure phone and console are on the same Wi-Fi network.",
+                'Ensure phone and console are on the same Wi-Fi network.',
             // icon: Icon(Icons.wifi, size: 80, color: colorScheme.primary),
             children: [
               Text(
-                "Note: 5GHz is not supported by the console\n\n(If you don't have 2GHz, do Legacy Setup)", // TODO a button for this that easily takes you back?
+                "Note: 5GHz is not supported by the console\n\n(If you don't have 2GHz, do Legacy Setup)", // TODOa button for this that easily takes you back?
                 style: Theme.of(context).textTheme.bodySmall,
                 textAlign: TextAlign.center,
               ),
@@ -98,32 +98,32 @@ class _OnboardingState extends State<Onboarding> {
           )
         else
           _screen(
-            // TODO Don't let the user scroll here unless they've selected an option
-            title: "Select System",
-            subtitle: "Please go back and select a system type.",
+            // TODODon't let the user scroll here unless they've selected an option
+            title: 'Select System',
+            subtitle: 'Please go back and select a system type.',
           ),
 
         // PAGE 3: Checklist
         _screen(
-          title: "Ready to Connect?",
-          subtitle: "Please check the following!",
+          title: 'Ready to Connect?',
+          subtitle: 'Please check the following!',
           // image: Icon(Icons.check_circle_outline, size: 80, color: colorScheme.primary),
           children: [
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    _checkItem("FTP Server running on console"),
-                    _checkItem("Console displays IP address"),
-                    _checkItem("Console screen is ON"),
+                    _checkItem('FTP Server running on console'),
+                    _checkItem('Console displays IP address'),
+                    _checkItem('Console screen is ON'),
                   ],
                 ),
               ),
             ),
             TextButton(
               onPressed: _launchHelpUrl,
-              child: const Text("Help / Guide"),
+              child: const Text('Help / Guide'),
             ),
           ],
         ),
@@ -146,7 +146,7 @@ class _OnboardingState extends State<Onboarding> {
     );
   }
 
-  // TODO Make below helpers stateless widgets? (measure performance)
+  // TODOMake below helpers stateless widgets? (measure performance)
   Widget _selectionCard({
     required String title,
     required String subtitle,
@@ -183,10 +183,10 @@ class _OnboardingState extends State<Onboarding> {
     );
   }
 
-  // TODO Reconsider design (potentially misleading as a clickable or self-updating checklist)
+  // TODOReconsider design (potentially misleading as a clickable or self-updating checklist)
   Widget _checkItem(String text) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           const Opacity(opacity: 0.5, child: Icon(Icons.check_box_outlined)),

@@ -1,5 +1,4 @@
 import 'package:ftpconnect/ftpconnect.dart';
-import 'package:path/path.dart' as p;
 
 class FtpClient {
   FTPConnect? _client;
@@ -25,11 +24,11 @@ class FtpClient {
   }
 
   Future<String> currentDir() async {
-    if (_client == null) return "";
+    if (_client == null) return '';
     try {
       return await _client!.currentDirectory();
     } catch (e) {
-      return "";
+      return '';
     }
   }
 

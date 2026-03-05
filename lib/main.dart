@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nds_save_sync/screens/onboarding.dart';
 import 'package:nds_save_sync/screens/dashboard.dart';
 
 void main() {
@@ -16,9 +15,9 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: "Flutter Demo",
+      title: 'NDS Save Sync',
       theme: ThemeData.dark(),
-      home: Dashboard(),
+      home: const Dashboard(),
     );
   }
 }

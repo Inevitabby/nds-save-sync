@@ -8,18 +8,17 @@ import 'package:nds_save_sync/providers/dashboard_controller.dart';
 // 
 // 1. Idle (Disconnected):
 //  - Condition: Initial state
-//  - Hero: "Search for Device" (TODO wording)
+//  - Hero: "Connect to Device" (TODO wording)
 // 
 // 2. Connecting:
-//  - Hero: Some loading indicator "Connecting to your DS..." (TODO this wording is misleading)
-//    - Hero: TODO (Should there be two different fail messages? One that is a gentle like modal with a few bullet points or something like, "Couldn't find DS 1. Is your phone and DS on the same hotspot or WiFi? 2. If your DS's FTP app running? etc." And have like two buttons like, "Let me try again" or "Let me enter the IP manually")
+//  - Hero: "Connecting to your DS..."
 // 
 // 3. Connected:
 //  - Condition: Connection established to DS.
 //  - Case A: First-Connection
-//    - Hero: Slide-up modal showing FTP directory browser, user finds and picks saveDir folder
+//    - Hero: Modal showing FTP directory browser, user finds and picks saveDir folder
 //  - Case B: Ready
-//    - Hero: "Tap to Sync"
+//    - Hero: "Tap to Sync" TODO Or just jump straight to syncing and save a tap?
 // 
 // 4. Syncing
 //  - Condition: Sync started
@@ -32,6 +31,8 @@ import 'package:nds_save_sync/providers/dashboard_controller.dart';
 // OTHER LOCATIONS
 // - Left: Save Archive
 // - Right: Settings xor Debug (Version Information and Logs (TODO Plan this side))
+// 
+// TODO Alternatively, just a slide-up modal for Save Archive, I may forgo settings for simplicity's sake.
 
 class Dashboard extends ConsumerWidget {
   const Dashboard({super.key});
@@ -50,11 +51,10 @@ class Dashboard extends ConsumerWidget {
           if (await controller.connect(dashboardState.lastIp!, dashboardState.lastPort!)) break;
           // TODO This case is when we failed to connect to saved IP. Log it something here.
         }
-        // Fallback: Ask user for FTP server info
+        // Special: Ask user for FTP server info
         final result = await showDialog<Map<String, dynamic>>(
           context: context,
-          barrierDismissible:
-              false, // Forces user to use buttons (Connect/Cancel)
+          barrierDismissible: false,
           builder: (_) => Dialog(
             insetPadding: const EdgeInsets.all(24),
             child: ConstrainedBox(
@@ -106,7 +106,7 @@ class Dashboard extends ConsumerWidget {
               flex: 2,
               child: Container(
                 decoration: BoxDecoration(border: BoxBorder.all(color: colorScheme.primary ) ),
-                child: const Center(child: Text("Network")),
+                child: const Center(child: Text('Network')),
               ),
             ),
             Expanded(
@@ -122,14 +122,14 @@ class Dashboard extends ConsumerWidget {
               flex: 2,
               child: Container(
                 decoration: BoxDecoration(border: BoxBorder.all(color: colorScheme.primary ) ),
-                child: const Center(child: Text("Notifications")),
+                child: const Center(child: Text('Notifications')),
               ),
             ),
             Expanded( // TODO Left: Save Archive, Right: Settings
               flex: 1,
               child: Container(
                 decoration: BoxDecoration(border: BoxBorder.all(color: colorScheme.primary ) ),
-                child: const Center(child: Text("Slider Indicators")),
+                child: const Center(child: Text('Slider Indicators')),
               ),
             ),
           ],

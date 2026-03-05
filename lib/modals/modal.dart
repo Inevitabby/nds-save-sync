@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 class Modal extends StatelessWidget {
   const Modal({
-    super.key,
     required this.title,
     required this.child,
+    super.key,
     this.resizeForKeyboard = false,
   });
 
