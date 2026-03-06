@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nds_save_sync/ftp.dart';
+import 'package:nds_save_sync/persistence.dart';
 
 /* 
  * State
@@ -15,12 +16,14 @@ class AppModel {
     this.saveDir,
     this.lastIp,
     this.lastPort,
+    this.archiveUri,
   });
 
   final SyncState syncState;
   final String? saveDir;
   final String? lastIp;
   final int? lastPort;
+  final String? archiveUri;
   final FtpClient ftp;
 
 
@@ -29,12 +32,14 @@ class AppModel {
     String? saveDir,
     String? lastIp,
     int? lastPort,
+    String? archiveUri,
   }) {
     return AppModel(
       syncState: syncState ?? this.syncState,
       saveDir: saveDir ?? this.saveDir,
       lastIp: lastIp ?? this.lastIp,
       lastPort: lastPort ?? this.lastPort,
+      archiveUri: archiveUri ?? this.archiveUri,
       ftp: ftp,
     );
   }
@@ -44,35 +49,55 @@ class AppModel {
  * Controller
  */
 
-class AppController extends Notifier<AppModel> {
+class AppController extends AsyncNotifier<AppModel> {
   @override
-  AppModel build() {
-    return AppModel(ftp: FtpClient());
+  Future<AppModel> build() async {
+    final persisted = await Persistence.load();
+    return AppModel(
+      ftp: FtpClient(),
+      lastIp: persisted.lastIp,
+      lastPort: persisted.lastPort,
+      saveDir: persisted.saveDir,
+      archiveUri: persisted.archiveUri,
+    );
   }
 
-  Future<bool> connect(String ip, int port) async {
-    state = state.copyWith(syncState: SyncState.connecting);
+  AppModel get _model => state.requireValue;
 
-    final success = await state.ftp.connect(ip, port);
+  void _update(AppModel next) => state = AsyncValue.data(next);
+
+  Future<bool> connect(String ip, int port) async {
+    _update(_model.copyWith(syncState: SyncState.connecting));
+
+    final success = await _model.ftp.connect(ip, port);
     if (success) {
-      state = state.copyWith(
+      _update(_model.copyWith(
         syncState: SyncState.connected,
         lastIp: ip,
         lastPort: port,
-      );
+      ));
+      await Persistence.saveLastIp(ip);
+      await Persistence.saveLastPort(port);
     } else {
-      state = state.copyWith(syncState: SyncState.error);
+      _update(_model.copyWith(syncState: SyncState.error));
     }
     return success;
   }
 
-  void setSaveDir(String path) {
-    state = state.copyWith(saveDir: path);
+  // TODO Perhaps calling all the DS stuff "remoteX" would be better...
+  Future<void> setSaveDir(String path) async {
+    _update(_model.copyWith(saveDir: path));
+    await Persistence.saveSaveDir(path);
+  }
+
+  Future<String?> setArchiveUri() async {
+    return null;
+    // TODO Implement
   }
 
   Future<void> sync() async {
-    if (state.saveDir == null || !state.ftp.isConnected) return;
-    state = state.copyWith(syncState: SyncState.syncing);
+    if (_model.saveDir == null || !_model.ftp.isConnected) return;
+    _update(_model.copyWith(syncState: SyncState.syncing));
 
     // TODO Implement
     //   1. ftp.downloadSaves(state.saveDir!, stagingDir)
@@ -81,12 +106,12 @@ class AppController extends Notifier<AppModel> {
     //   4. Update UI with per-file progress
     await Future.delayed(const Duration(seconds: 2));
 
-    state = state.copyWith(syncState: SyncState.success);
+    _update(_model.copyWith(syncState: SyncState.success));
   }
 
   Future<void> reset() async {
-    await state.ftp.disconnect();
-    state = AppModel(ftp: FtpClient());
+    await _model.ftp.disconnect();
+    ref.invalidateSelf();
   }
 }
 
@@ -94,6 +119,6 @@ class AppController extends Notifier<AppModel> {
  * Provider
  */
 
-final appProvider = NotifierProvider<AppController, AppModel>(
+final appProvider = AsyncNotifierProvider<AppController, AppModel>(
   AppController.new,
 );

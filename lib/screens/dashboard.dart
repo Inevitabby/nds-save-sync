@@ -51,7 +51,8 @@ class Dashboard extends ConsumerWidget {
           if (await controller.connect(appState.lastIp!, appState.lastPort!)) {
             break;
           }
-          // TODO This case is when we failed to connect to saved IP. Log it something here.
+          // TODO We hit this section when we fail to connect to saved IP.
+          //      Tell the user something like (e.g., "Couldn't connect to saved IP (is the FTP server running?)
         }
         // Special: Ask user for FTP server info
         final result = await showDialog<Map<String, dynamic>>(
@@ -86,7 +87,7 @@ class Dashboard extends ConsumerWidget {
           ),
         );
         if (selectedPath == null) break;
-        controller.setSaveDir(selectedPath);
+        await controller.setSaveDir(selectedPath);
         controller.sync();
         break;
       case SyncState.syncing:
@@ -101,45 +102,55 @@ class Dashboard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final appState = ref.watch(appProvider);
-    final colorScheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              flex: 2,
-              child: Container(
-                decoration: BoxDecoration(border: BoxBorder.all(color: colorScheme.primary ) ),
-                child: const Center(child: Text('Network')),
-              ),
-            ),
-            Expanded(
-              flex: 4,
-              child: Container(
-                decoration: BoxDecoration(border: BoxBorder.all(color: colorScheme.primary ) ),
-                child: Center(child: 
-                  TextButton(onPressed: () => _onPressed(context, ref, appState), child: Text(_getText(appState.syncState)))
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Container(
-                decoration: BoxDecoration(border: BoxBorder.all(color: colorScheme.primary ) ),
-                child: const Center(child: Text('Notifications')),
-              ),
-            ),
-            Expanded( // TODO Left: Save Archive, Right: Settings
-              flex: 1,
-              child: Container(
-                decoration: BoxDecoration(border: BoxBorder.all(color: colorScheme.primary ) ),
-                child: const Center(child: Text('Slider Indicators')),
-              ),
-            ),
-          ],
-        ),
+    final asyncState = ref.watch(appProvider);
+    return asyncState.when(
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
       ),
+      error: (err, _) => Scaffold(
+        body: Center(child: Text('Failed to load: $err')),
+      ),
+      data: (appState) {
+        final colorScheme = Theme.of(context).colorScheme;
+        return Scaffold(
+          body: SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    decoration: BoxDecoration(border: BoxBorder.all(color: colorScheme.primary ) ),
+                    child: const Center(child: Text('Network')),
+                  ),
+                ),
+                Expanded(
+                  flex: 4,
+                  child: Container(
+                    decoration: BoxDecoration(border: BoxBorder.all(color: colorScheme.primary ) ),
+                    child: Center(child: 
+                      TextButton(onPressed: () => _onPressed(context, ref, appState), child: Text(_getText(appState.syncState)))
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    decoration: BoxDecoration(border: BoxBorder.all(color: colorScheme.primary ) ),
+                    child: const Center(child: Text('Notifications')),
+                  ),
+                ),
+                Expanded( // TODO Left: Save Archive, Right: Settings
+                  flex: 1,
+                  child: Container(
+                    decoration: BoxDecoration(border: BoxBorder.all(color: colorScheme.primary ) ),
+                    child: const Center(child: Text('Slider Indicators')),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

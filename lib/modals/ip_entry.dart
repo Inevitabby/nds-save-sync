@@ -11,7 +11,7 @@ class IpEntry extends HookWidget {
     final ipController = useTextEditingController(
       text: kDebugMode
           ? '10.0.2.2'
-          : '', // TODO What if the user makes a typo? They won't see it.
+          : '', // TODO Place saved IP here
     );
     final portController = useTextEditingController(text: '5000');
 
