@@ -57,12 +57,14 @@ class Dashboard extends ConsumerWidget {
         // Special: Ask user for FTP server info
         final result = await showDialog<Map<String, dynamic>>(
           context: context,
-          barrierDismissible: false,
           builder: (_) => Dialog(
             insetPadding: const EdgeInsets.all(24),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
-              child: const IpEntry(),
+              child: IpEntry(
+                initialIp: appState.lastIp,
+                initialPort: appState.lastPort,
+              ),
             ),
           ),
         );

@@ -4,16 +4,24 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:nds_save_sync/modals/modal.dart';
 
 class IpEntry extends HookWidget {
-  const IpEntry({super.key});
+  const IpEntry({
+    super.key,
+    this.initialIp,
+    this.initialPort,
+  });
+
+  final String? initialIp;
+  final int? initialPort;
 
   @override
   Widget build(BuildContext context) {
     final ipController = useTextEditingController(
-      text: kDebugMode
-          ? '10.0.2.2'
-          : '', // TODO Place saved IP here
+      text: initialIp ?? (kDebugMode ? '10.0.2.2' : ''),
     );
-    final portController = useTextEditingController(text: '5000');
+
+    final portController = useTextEditingController(
+      text: initialPort?.toString() ?? '5000',
+    );
 
     return Modal(
       title: 'Connect to FTP Server',

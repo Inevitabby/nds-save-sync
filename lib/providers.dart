@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nds_save_sync/ftp.dart';
 import 'package:nds_save_sync/persistence.dart';
@@ -53,6 +54,7 @@ class AppController extends AsyncNotifier<AppModel> {
   @override
   Future<AppModel> build() async {
     final persisted = await Persistence.load();
+    // if (kDebugMode) return AppModel(ftp: FtpClient());
     return AppModel(
       ftp: FtpClient(),
       lastIp: persisted.lastIp,
