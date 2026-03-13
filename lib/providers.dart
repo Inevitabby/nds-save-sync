@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nds_save_sync/ftp.dart';
 import 'package:nds_save_sync/persistence.dart';
+import 'package:nds_save_sync/saf.dart';
 
 /* 
  * State
@@ -93,13 +94,21 @@ class AppController extends AsyncNotifier<AppModel> {
   }
 
   Future<String?> setArchiveUri() async {
-    return null;
-    // TODO Implement
+    final uri = await SafFolderPicker.pickFolder();
+    if (uri != null) {
+      _update(_model.copyWith(archiveUri: uri));
+      await Persistence.saveArchiveUri(uri);
+    }
+    return uri;
   }
 
   Future<void> sync() async {
     if (_model.saveDir == null || !_model.ftp.isConnected) return;
     _update(_model.copyWith(syncState: SyncState.syncing));
+    if (_model.archiveUri == null) {
+      final uri = await setArchiveUri(); // TODO need a popup or something to ask the user "Where would you like to store your save backups?"
+      if (uri == null) return;
+    }
 
     // TODO Implement
     //   1. ftp.downloadSaves(state.saveDir!, stagingDir)
