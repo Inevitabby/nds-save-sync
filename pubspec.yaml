@@ -45,6 +45,7 @@ dependencies:
   path: ^1.9.1
   shared_preferences: ^2.5.4
 
+  intl: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

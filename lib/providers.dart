@@ -1,8 +1,11 @@
-import 'package:flutter/foundation.dart';
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nds_save_sync/ftp.dart';
 import 'package:nds_save_sync/persistence.dart';
 import 'package:nds_save_sync/saf.dart';
+import 'package:nds_save_sync/sync.dart';
+import 'package:path_provider/path_provider.dart';
 
 /* 
  * State
@@ -11,40 +14,73 @@ import 'package:nds_save_sync/saf.dart';
 // TODO Error state isn't developed
 enum SyncState { idle, connecting, connected, syncing, success, error }
 
+class SyncProgress {
+  const SyncProgress({
+    required this.currentFile,
+    required this.done,
+    required this.total,
+    this.phase = SyncPhase.downloading,
+  });
+ 
+  final String currentFile;
+  final int done;
+  final int total;
+  final SyncPhase phase;
+}
+ 
+enum SyncPhase { downloading, archiving }
+
 class AppModel {
   const AppModel({
     required this.ftp,
-    this.syncState = SyncState.idle,
-    this.saveDir,
+    this.archiveUri,
     this.lastIp,
     this.lastPort,
-    this.archiveUri,
+    this.lastSyncResult,
+    this.saveDir,
+    this.syncProgress,
+    this.syncState = SyncState.idle,
   });
 
-  final SyncState syncState;
-  final String? saveDir;
+  final FtpClient ftp;
+  final String? archiveUri;
   final String? lastIp;
   final int? lastPort;
-  final String? archiveUri;
-  final FtpClient ftp;
-
+  final SyncResult? lastSyncResult;
+  final String? saveDir;
+  final SyncProgress? syncProgress;
+  final SyncState syncState;
 
   AppModel copyWith({
-    SyncState? syncState,
-    String? saveDir,
+    String? archiveUri,
     String? lastIp,
     int? lastPort,
-    String? archiveUri,
+    SyncResult? lastSyncResult,
+    String? saveDir,
+    SyncProgress? syncProgress,
+    SyncState? syncState,
   }) {
     return AppModel(
-      syncState: syncState ?? this.syncState,
-      saveDir: saveDir ?? this.saveDir,
+      ftp: ftp,
+      archiveUri: archiveUri ?? this.archiveUri,
       lastIp: lastIp ?? this.lastIp,
       lastPort: lastPort ?? this.lastPort,
-      archiveUri: archiveUri ?? this.archiveUri,
-      ftp: ftp,
+      lastSyncResult: lastSyncResult ?? this.lastSyncResult,
+      saveDir: saveDir ?? this.saveDir,
+      syncProgress: syncProgress ?? this.syncProgress,
+      syncState: syncState ?? this.syncState,
     );
   }
+
+  AppModel clearProgress() => AppModel(
+    ftp: ftp,
+    archiveUri: archiveUri,
+    lastIp: lastIp,
+    lastPort: lastPort,
+    lastSyncResult: lastSyncResult,
+    saveDir: saveDir,
+    syncState: syncState,
+  );
 }
 
 /*
@@ -110,14 +146,71 @@ class AppController extends AsyncNotifier<AppModel> {
       if (uri == null) return;
     }
 
-    // TODO Implement
-    //   1. ftp.downloadSaves(state.saveDir!, stagingDir)
-    //   2. Compare each file against last-downloaded version (need to develop archive)
-    //   3. Copy changed files into the save archive
-    //   4. Update UI with per-file progress
-    await Future.delayed(const Duration(seconds: 2));
+    // Temporary staging dir
+    final tempBase = await getTemporaryDirectory();
+    final stagingDir = Directory(
+      '${tempBase.path}/nds_save_sync_staging_${DateTime.now().millisecondsSinceEpoch}',
+    );
+    await stagingDir.create(recursive: true);
 
-    _update(_model.copyWith(syncState: SyncState.success));
+    try {
+      // 1. Download to staging
+      final downloadResult = await _model.ftp.downloadSaves(
+        remoteDir: _model.saveDir!,
+        stagingDir: stagingDir,
+        onProgress: (filename, done, total) {
+          _update(
+            _model.copyWith(
+              syncProgress: SyncProgress(
+                currentFile: filename,
+                done: done,
+                total: total,
+              ),
+            ),
+          );
+        },
+      );
+
+      // 2. Compare against latest and archive changed files
+      final syncResult = await archiveChangedFiles(
+        stagedFiles: downloadResult.files,
+        archiveUri: _model.archiveUri!,
+        onProgress: (filename, done, total) {
+          _update(
+            _model.copyWith(
+              syncProgress: SyncProgress(
+                currentFile: filename,
+                done: done,
+                total: total,
+                phase: SyncPhase.archiving,
+              ),
+            ),
+          );
+        },
+      );
+
+      // Merge download failures into sync result
+      final mergedResult = SyncResult(
+        changed: syncResult.changed,
+        unchanged: syncResult.unchanged,
+        failures: [...downloadResult.failures, ...syncResult.failures],
+      );
+
+      _update(
+        _model.clearProgress().copyWith(
+          syncState: SyncState.success,
+          lastSyncResult: mergedResult,
+        ),
+      );
+    } catch (e) {
+      _update(_model.clearProgress().copyWith(syncState: SyncState.error));
+    } finally {
+      try {
+        if (await stagingDir.exists()) {
+          await stagingDir.delete(recursive: true);
+        }
+      } catch (_) {}
+    }
   }
 
   Future<void> reset() async {

@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:ftpconnect/ftpconnect.dart';
+import 'package:path/path.dart' as p;
 
 class FtpClient {
   FTPConnect? _client;
@@ -44,7 +46,7 @@ class FtpClient {
   Future<List<FTPEntry>> list() async {
     if (_client == null) return [];
     try {
-      List<FTPEntry> entries = await _client!.listDirectoryContent();
+      var entries = await _client!.listDirectoryContent();
 
       // 1. Filter for directories and files
       entries = entries.where((entry) {
@@ -72,12 +74,70 @@ class FtpClient {
     }
   }
 
-  // TODO Download files to a local staging folder.
-  //      It's very finicky, best bet is to copy behavior of https://github.com/Inevitabby/DS-OTA-Backup
-  //      Due to NDS FTP server limitations, we must download every SAV file to a temporary
-  //      staging directory, then compare against last-downloaded versions to find changes.
-  Future<void> downloadSaves(String remoteDir, String stagingDir) async {
-    if (_client == null) return;
-    // TODO Implement
+  static const int _maxRetries = 5;
+
+  // Download files to a local staging folder.
+  Future<DownloadResult> downloadSaves({
+    required String remoteDir,
+    required Directory stagingDir,
+    void Function(String filename, int done, int total)? onProgress,
+  }) async {
+    if (_client == null) {
+      return const DownloadResult(files: {}, failures: []);
+    }
+ 
+    // 1. Navigate to the remote dir and list .sav files.
+    await _client!.changeDirectory(remoteDir);
+    final entries = await list();
+    final saves = entries
+        .where((e) =>
+            e.type == FTPEntryType.file &&
+            p.extension(e.name.toLowerCase()) == '.sav')
+        .toList();
+ 
+    if (saves.isEmpty) {
+      return const DownloadResult(files: {}, failures: []);
+    }
+ 
+    final downloaded = <String, File>{};
+    final failures = <String>[];
+    var done = 0;
+ 
+    for (final entry in saves) {
+      final localFile = File(p.join(stagingDir.path, entry.name));
+      var success = false;
+ 
+      for (var attempt = 1; attempt <= _maxRetries; attempt++) {
+        try {
+          await _client!.downloadFile(entry.name, localFile);
+          success = true;
+          break;
+        } catch (e) {
+          if (await localFile.exists()) await localFile.delete();
+          if (attempt == _maxRetries) break;
+          await Future<void>.delayed(const Duration(milliseconds: 500));
+        }
+      }
+ 
+      done++;
+      if (success) {
+        downloaded[entry.name] = localFile;
+      } else {
+        failures.add(entry.name);
+      }
+      onProgress?.call(entry.name, done, saves.length);
+    }
+ 
+    return DownloadResult(files: downloaded, failures: failures);
   }
+}
+
+class DownloadResult {
+  const DownloadResult({
+    required this.files,
+    required this.failures,
+  });
+ 
+  final Map<String, File> files;
+  final List<String> failures;
 }
