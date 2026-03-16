@@ -3,18 +3,16 @@ import 'package:flutter/services.dart';
 class SafFolderPicker {
   static const _channel = MethodChannel('com.inevitabby.nds_save_sync/saf');
 
-  // Open dialog to let user pick a persistent folder (returns URI)
+  // Open system folder picker to let user pick a folder (returns persistent tree URI)
   static Future<String?> pickFolder() async {
     try {
-      final result = await _channel.invokeMethod<String>('pickFolder');
-      return result;
-    } on PlatformException catch (e) {
-      print('${e.code}: ${e.message}');
+      return await _channel.invokeMethod<String>('pickFolder');
+    } on PlatformException catch (_) {
       return null;
     }
   }
 
-  // Writes bytes to filename inside the SAF tree at archiveUri
+  // Writes a file to archiveUri (optionally, under subdir)
   static Future<bool> writeFile({
     required String archiveUri,
     required String filename,
@@ -29,29 +27,42 @@ class SafFolderPicker {
         'subdir': ?subdir,
       });
       return result ?? false;
-    } on PlatformException catch (e) {
-      print('${e.code}: ${e.message}');
+    } on PlatformException catch (_) {
       return false;
     }
   }
 
-  // Read raw bytes from the file
+  // Read a file inside archiveUri (optionally, under subdir)
   static Future<Uint8List?> readFile({
     required String archiveUri,
     required String filename,
     String? subdir,
   }) async {
     try {
-      final result = await _channel.invokeMethod<Uint8List>('readFile', {
+      return await _channel.invokeMethod<Uint8List>('readFile', {
         'archiveUri': archiveUri,
         'filename': filename,
         'subdir': ?subdir,
       });
-      return result;
     } on PlatformException catch (e) {
       if (e.code == 'FILE_NOT_FOUND') return null;
-      print('${e.code}: ${e.message}');
       return null;
+    }
+  }
+
+  // Lists filenames inside archiveUri (optionally, under subdir)
+  static Future<List<String>> listFiles({
+    required String archiveUri,
+    String? subdir,
+  }) async {
+    try {
+      final result = await _channel.invokeMethod<List<dynamic>>('listFiles', {
+        'archiveUri': archiveUri,
+        'subdir': ?subdir,
+      });
+      return result?.cast<String>() ?? [];
+    } on PlatformException catch (_) {
+      return [];
     }
   }
 }
