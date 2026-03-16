@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'dart:typed_data';
-
-import 'package:intl/intl.dart';
+ 
+import 'package:nds_save_sync/constants.dart';
 import 'package:nds_save_sync/saf.dart';
-import 'package:path/path.dart' as p;
+import 'package:nds_save_sync/util/save_filename.dart';
 
 class SyncResult {
   const SyncResult({
@@ -12,68 +12,62 @@ class SyncResult {
     required this.failures,
   });
 
-  final List<String> changed;   // New or changed
-  final List<String> unchanged; // Skipped
-  final List<String> failures;  // Failed to save
+  final List<String> changed;   // New or changed saves that were archived
+  final List<String> unchanged; // Skipped (identical to latest copy)
+  final List<String> failures;  // Couldn't be read or written
 
   bool get hasFailures => failures.isNotEmpty;
   int get totalProcessed => changed.length + unchanged.length + failures.length;
 }
 
-// For each entry in stagedFiles:
-//  1. Read the latest copy from the archive tree
-//  2. Compare against the staged file
-//  3. If changed/new, write a timestamped copy to .archive for history and overwrite the root file
-Future<SyncResult> archiveChangedFiles({
+enum SyncPhase { downloading, archiving }
+
+// For each staged file:
+//  1. Read the latest copy from the archive root
+//  2. Skip if identical; otherwise, write a timestamped copy to .archive/
+Future<SyncResult> syncToArchive({
   required Map<String, File> stagedFiles,
   required String archiveUri,
   void Function(String filename, int done, int total)? onProgress,
 }) async {
-  final changed = <String>[];
+  final changed   = <String>[];
   final unchanged = <String>[];
-  final failures = <String>[];
-
+  final failures  = <String>[];
+ 
   final total = stagedFiles.length;
   var done = 0;
-
+ 
   for (final MapEntry(:key, :value) in stagedFiles.entries) {
-    final filename = key;
+    final filename   = key;
     final stagedFile = value;
-
+ 
     try {
       final stagedBytes = await stagedFile.readAsBytes();
       final latestBytes = await SafFolderPicker.readFile(
         archiveUri: archiveUri,
         filename: filename,
       );
-
-      final isNew = latestBytes == null;
-      final hasChanged = isNew || !_cmp(stagedBytes, latestBytes);
-
-      if (!hasChanged) {
+ 
+      if (latestBytes != null && _cmp(stagedBytes, latestBytes)) {
         unchanged.add(filename);
         done++;
         onProgress?.call(filename, done, total);
         continue;
       }
-
-      final timestampedName = _timestampedFilename(filename);
-
-      // Timestamped copy in .archive/ for history.
+ 
       final archiveOk = await SafFolderPicker.writeFile(
         archiveUri: archiveUri,
-        filename: timestampedName,
+        filename: SaveFilename.stamp(filename),
         bytes: stagedBytes,
-        subdir: _archiveSubdir,
+        subdir: archiveSubdir,
       );
-
-      // Overwrite root "latest" for clean external access.
+ 
       final latestOk = await SafFolderPicker.writeFile(
         archiveUri: archiveUri,
         filename: filename,
         bytes: stagedBytes,
       );
-
+ 
       if (archiveOk && latestOk) {
         changed.add(filename);
       } else {
@@ -82,29 +76,18 @@ Future<SyncResult> archiveChangedFiles({
     } catch (_) {
       failures.add(filename);
     }
-
+ 
     done++;
     onProgress?.call(filename, done, total);
   }
-
+ 
   return SyncResult(
     changed: changed,
     unchanged: unchanged,
     failures: failures,
   );
 }
-
-const _archiveSubdir = '.archive';
-
-// Put timestamp in filename (<name>.<timestamp>.sav)
-String _timestampedFilename(String filename) {
-  final ext  = p.extension(filename);
-  final stem = p.basenameWithoutExtension(filename);
-  final ts   = DateFormat('yyyy-MM-dd_HHmm').format(DateTime.now());
-  return '$stem.$ts$ext';
-}
-
-/// Byte-by-byte equality
+ 
 bool _cmp(Uint8List a, Uint8List b) {
   if (a.length != b.length) return false;
   for (var i = 0; i < a.length; i++) {
