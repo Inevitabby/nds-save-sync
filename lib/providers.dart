@@ -1,5 +1,5 @@
 import 'dart:io';
-
+ 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nds_save_sync/ftp.dart';
 import 'package:nds_save_sync/persistence.dart';
@@ -14,22 +14,6 @@ import 'package:path_provider/path_provider.dart';
 // TODO Error state isn't developed
 enum SyncState { idle, connecting, connected, syncing, success, error }
 
-class SyncProgress {
-  const SyncProgress({
-    required this.currentFile,
-    required this.done,
-    required this.total,
-    this.phase = SyncPhase.downloading,
-  });
- 
-  final String currentFile;
-  final int done;
-  final int total;
-  final SyncPhase phase;
-}
- 
-enum SyncPhase { downloading, archiving }
-
 class AppModel {
   const AppModel({
     required this.ftp,
@@ -41,7 +25,7 @@ class AppModel {
     this.syncProgress,
     this.syncState = SyncState.idle,
   });
-
+ 
   final FtpClient ftp;
   final String? archiveUri;
   final String? lastIp;
@@ -50,7 +34,7 @@ class AppModel {
   final String? saveDir;
   final SyncProgress? syncProgress;
   final SyncState syncState;
-
+ 
   AppModel copyWith({
     String? archiveUri,
     String? lastIp,
@@ -71,7 +55,7 @@ class AppModel {
       syncState: syncState ?? this.syncState,
     );
   }
-
+ 
   AppModel clearProgress() => AppModel(
     ftp: ftp,
     archiveUri: archiveUri,
@@ -141,8 +125,10 @@ class AppController extends AsyncNotifier<AppModel> {
   Future<void> sync() async {
     if (_model.saveDir == null || !_model.ftp.isConnected) return;
     _update(_model.copyWith(syncState: SyncState.syncing));
+
     if (_model.archiveUri == null) {
-      final uri = await setArchiveUri(); // TODO need a popup or something to ask the user "Where would you like to store your save backups?"
+      // TODO need a popup or something to ask the user "Where would you like to store your save backups?" first
+      final uri = await setArchiveUri();
       if (uri == null) return;
     }
 
@@ -172,7 +158,7 @@ class AppController extends AsyncNotifier<AppModel> {
       );
 
       // 2. Compare against latest and archive changed files
-      final syncResult = await archiveChangedFiles(
+      final syncResult = await syncToArchive(
         stagedFiles: downloadResult.files,
         archiveUri: _model.archiveUri!,
         onProgress: (filename, done, total) {
@@ -189,26 +175,21 @@ class AppController extends AsyncNotifier<AppModel> {
         },
       );
 
-      // Merge download failures into sync result
-      final mergedResult = SyncResult(
-        changed: syncResult.changed,
-        unchanged: syncResult.unchanged,
-        failures: [...downloadResult.failures, ...syncResult.failures],
-      );
-
       _update(
         _model.clearProgress().copyWith(
           syncState: SyncState.success,
-          lastSyncResult: mergedResult,
+          lastSyncResult: SyncResult(
+            changed: syncResult.changed,
+            unchanged: syncResult.unchanged,
+            failures: [...downloadResult.failures, ...syncResult.failures],
+          ),
         ),
       );
     } catch (e) {
       _update(_model.clearProgress().copyWith(syncState: SyncState.error));
     } finally {
       try {
-        if (await stagingDir.exists()) {
-          await stagingDir.delete(recursive: true);
-        }
+        if (await stagingDir.exists()) await stagingDir.delete(recursive: true);
       } catch (_) {}
     }
   }

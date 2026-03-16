@@ -20,6 +20,20 @@ class SyncResult {
   int get totalProcessed => changed.length + unchanged.length + failures.length;
 }
 
+class SyncProgress {
+  const SyncProgress({
+    required this.currentFile,
+    required this.done,
+    required this.total,
+    this.phase = SyncPhase.downloading,
+  });
+ 
+  final String currentFile;
+  final int done;
+  final int total;
+  final SyncPhase phase;
+}
+
 enum SyncPhase { downloading, archiving }
 
 // For each staged file:
