@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:ftpconnect/ftpconnect.dart';
+import 'package:nds_save_sync/util/save_filename.dart';
 import 'package:path/path.dart' as p;
 
 class FtpClient {
@@ -43,31 +44,26 @@ class FtpClient {
     }
   }
 
+  // Lists contents of CWD (directories first, then files)
   Future<List<FTPEntry>> list() async {
     if (_client == null) return [];
     try {
       var entries = await _client!.listDirectoryContent();
-
-      // 1. Filter for directories and files
-      entries = entries.where((entry) {
-        return entry.type == FTPEntryType.dir || entry.type == FTPEntryType.file;
-      }).toList();
-
-      // 2. Remove absolute path entry
-      // TODO Is FTP server returning the absolute path to the CWD because that's just how LIST or MSLD works?
+ 
+      entries = entries
+          .where((e) => e.type == FTPEntryType.dir || e.type == FTPEntryType.file)
+          .toList();
+ 
+      // TODO: Is the server returning the CWD path as an entry because of LIST/MLSD behaviour?
       if (entries.isNotEmpty && entries.first.name == await currentDir()) {
         entries = entries.sublist(1);
       }
-
-      // 3. Sort directories above files
+ 
       entries.sort((a, b) {
         if (a.type != b.type) return a.type == FTPEntryType.dir ? -1 : 1;
         return a.name.toLowerCase().compareTo(b.name.toLowerCase());
       });
-
-      // 4.
-      // TODO Consider sorting saves over other files?
-
+ 
       return entries;
     } catch (e) {
       return [];
@@ -76,7 +72,7 @@ class FtpClient {
 
   static const int _maxRetries = 5;
 
-  // Download files to a local staging folder.
+  // Download save files from remoteDir to stagingDir
   Future<DownloadResult> downloadSaves({
     required String remoteDir,
     required Directory stagingDir,
@@ -85,28 +81,26 @@ class FtpClient {
     if (_client == null) {
       return const DownloadResult(files: {}, failures: []);
     }
- 
-    // 1. Navigate to the remote dir and list .sav files.
+
     await _client!.changeDirectory(remoteDir);
-    final entries = await list();
-    final saves = entries
-        .where((e) =>
-            e.type == FTPEntryType.file &&
-            p.extension(e.name.toLowerCase()) == '.sav')
+    final saves = (await list())
+        .where(
+          (e) => e.type == FTPEntryType.file && SaveFilename.isSave(e.name),
+        )
         .toList();
- 
+
     if (saves.isEmpty) {
       return const DownloadResult(files: {}, failures: []);
     }
- 
+
     final downloaded = <String, File>{};
     final failures = <String>[];
     var done = 0;
- 
+
     for (final entry in saves) {
       final localFile = File(p.join(stagingDir.path, entry.name));
       var success = false;
- 
+
       for (var attempt = 1; attempt <= _maxRetries; attempt++) {
         try {
           await _client!.downloadFile(entry.name, localFile);
@@ -118,7 +112,7 @@ class FtpClient {
           await Future<void>.delayed(const Duration(milliseconds: 500));
         }
       }
- 
+
       done++;
       if (success) {
         downloaded[entry.name] = localFile;
@@ -127,7 +121,7 @@ class FtpClient {
       }
       onProgress?.call(entry.name, done, saves.length);
     }
- 
+
     return DownloadResult(files: downloaded, failures: failures);
   }
 }
