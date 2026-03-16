@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ftpconnect/ftpconnect.dart';
 import 'package:nds_save_sync/modals/modal.dart';
 import 'package:nds_save_sync/providers.dart';
-import 'package:path/path.dart' as p;
+import 'package:nds_save_sync/util/save_filename.dart';
 
 class Browser extends ConsumerStatefulWidget {
   const Browser({super.key});
@@ -23,7 +23,7 @@ class _BrowserState extends ConsumerState<Browser> {
     _loadDir();
   }
 
-  int get _saveCount => _files.where((f) => _isSave(f.name)).length;
+  int get _saveCount => _files.where((f) => SaveFilename.isSave(f.name)).length;
 
   Future<void> _loadDir() async {
     setState(() => _loading = true);
@@ -44,8 +44,6 @@ setState(() => _currentPath = dir);
         await _loadDir();
     }
   }
-
-  bool _isSave(String name) => p.extension(name.toLowerCase()) == '.sav';
 
   // TODO Is some cleanup w.r.t. FTPConnect needed when this widget is destroyed?
   // TODO Should phone back button be hooked-up to navigating backwards whenb not at root?
@@ -117,20 +115,23 @@ setState(() => _currentPath = dir);
   }
 
   Widget _entry(FTPEntry file) {
-    final isSave = _isSave(file.name);
-    final dim = !isSave && (_saveCount > 0);
-
-    IconData getIcon(FTPEntry file) {
+    final isSave = SaveFilename.isSave(file.name);
+    final dim    = !isSave && _saveCount > 0;
+ 
+    IconData icon() {
       if (file.type == FTPEntryType.dir) return Icons.folder;
-      return isSave
-          ? Icons.save
-          : Icons.insert_drive_file;
+      return isSave ? Icons.save : Icons.insert_drive_file;
     }
-
-    return Opacity(opacity: dim ? 0.7 : 1, child: ListTile(
-      leading: Icon(getIcon(file)),
-      title: Text(file.name),
-      onTap: file.type == FTPEntryType.dir ? () => _navigate(file.name) : null,
-    ));
+ 
+    return Opacity(
+      opacity: dim ? 0.7 : 1,
+      child: ListTile(
+        leading: Icon(icon()),
+        title: Text(file.name),
+        onTap: file.type == FTPEntryType.dir
+            ? () => _navigate(file.name)
+            : null,
+      ),
+    );
   }
 }
