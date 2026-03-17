@@ -249,16 +249,20 @@ class _NotificationsPanel extends StatelessWidget {
         children: [
           if (progress != null) ...[
             Text(
-              _progressText(progress),
+              progress.phase == SyncPhase.archiving
+                  ? 'Archiving...'
+                  : _progressText(progress),
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 6),
-            TweenAnimationBuilder<double>(
-              tween: Tween(end: progress.fraction),
-              duration: const Duration(milliseconds: 400),
-              builder: (_, value, _) => LinearProgressIndicator(value: value),
-            )
+            progress.phase == SyncPhase.archiving
+                ? const LinearProgressIndicator()
+                : TweenAnimationBuilder<double>(
+                    tween: Tween(end: progress.fraction),
+                    duration: const Duration(milliseconds: 400),
+                    builder: (_, value, __) => LinearProgressIndicator(value: value),
+                  ),
           ] else if (_hasNotification) ...[
             _hasFailures
                 ? GestureDetector(
