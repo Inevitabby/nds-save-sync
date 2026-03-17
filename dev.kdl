@@ -5,7 +5,7 @@ layout {
     pane split_direction="horizontal" {
         pane command="bash" {
             name "emulator"
-            args "-c" "flutter emulators --launch Pixel_34 --cold; read -p 'Press Enter to close everything.'; zellij action close-tab"
+            args "-c" "flutter emulators --launch Pixel_34; read -p 'Press Enter to close everything.'; zellij action close-tab"
         }
         pane command="bash" {
             name "ftp"

@@ -4,6 +4,10 @@ import 'dart:typed_data';
 import 'package:nds_save_sync/constants.dart';
 import 'package:nds_save_sync/saf.dart';
 import 'package:nds_save_sync/util/save_filename.dart';
+ 
+/*
+ * State
+ */
 
 class SyncResult {
   const SyncResult({
@@ -35,6 +39,10 @@ class SyncProgress {
 }
 
 enum SyncPhase { downloading, archiving }
+
+/*
+ * Logic
+ */
 
 // For each staged file:
 //  1. Read the latest copy from the archive root
