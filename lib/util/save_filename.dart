@@ -32,6 +32,7 @@ class SaveFilename {
   }
 
   // game.2026-01-01_1200.sav -> 2026-01-01 12:00
+  // TODO human-readable relative?
   static String formatTimestamp(String filename) {
     final stem = p.basenameWithoutExtension(filename);
     if (stem.length >= _tsLength) {
@@ -42,4 +43,8 @@ class SaveFilename {
     }
     return filename;
   }
+
+  // game.sav -> human-readable display name
+  // TODO implement
+  static String displayName(String filename) => filename;
 }

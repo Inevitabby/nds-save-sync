@@ -6,8 +6,13 @@ import 'package:nds_save_sync/saf.dart';
 import 'package:nds_save_sync/util/save_filename.dart';
 
 class SaveGroup {
-  const SaveGroup({required this.gameName, required this.entries});
+  const SaveGroup({
+    required this.gameName,
+    required this.displayName,
+    required this.entries,
+  });
   final String gameName;      // e.g. game.sav
+  final String displayName;
   final List<String> entries; // timestamped filenames sorted newest first
 }
 
@@ -15,34 +20,38 @@ class SaveGroup {
 final FutureProvider<List<SaveGroup>> archiveProvider = FutureProvider.autoDispose<List<SaveGroup>>((ref) async {
   final archiveUri = ref.watch(appProvider).value?.archiveUri;
   if (archiveUri == null) return [];
-
+ 
   final files = await SafFolderPicker.listFiles(
     archiveUri: archiveUri,
     subdir: archiveSubdir,
   );
-
+ 
   final Map<String, List<String>> grouped = {};
   for (final filename in files) {
     grouped
         .putIfAbsent(SaveFilename.original(filename), () => [])
         .add(filename);
   }
-
+ 
   return grouped.entries.map((e) {
     final sorted = List<String>.from(e.value)..sort((a, b) => b.compareTo(a));
-    return SaveGroup(gameName: e.key, entries: sorted);
+    return SaveGroup(
+      gameName: e.key,
+      displayName: SaveFilename.displayName(e.key),
+      entries: sorted,
+    );
   }).toList()
-    ..sort((a, b) => a.gameName.compareTo(b.gameName));
+    ..sort((a, b) => a.displayName.compareTo(b.displayName));
 });
 
 class Archive extends ConsumerWidget {
   const Archive({super.key});
-
+ 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final archiveAsync = ref.watch(archiveProvider);
     final archiveUri   = ref.watch(appProvider).value?.archiveUri;
-
+ 
     return Scaffold(
       body: switch (archiveAsync) {
         AsyncLoading() => const Center(child: CircularProgressIndicator()),
@@ -51,7 +60,7 @@ class Archive extends ConsumerWidget {
       },
     );
   }
-
+ 
   Widget _body(BuildContext context, String? archiveUri, List<SaveGroup> groups) {
     if (archiveUri == null) {
       return const Center(child: Text('No archive folder selected yet.\nRun a sync first.', textAlign: TextAlign.center));
@@ -65,16 +74,16 @@ class Archive extends ConsumerWidget {
     );
   }
 }
-
+ 
 class _GameTile extends StatelessWidget {
   const _GameTile({required this.group});
-
+ 
   final SaveGroup group;
-
+ 
   @override
   Widget build(BuildContext context) {
     return ExpansionTile(
-      title: Text(group.gameName),
+      title: Text(group.displayName),
       subtitle: Text(
         '${group.entries.length} backup${group.entries.length == 1 ? '' : 's'}',
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -87,12 +96,12 @@ class _GameTile extends StatelessWidget {
     );
   }
 }
-
+ 
 class _EntryTile extends StatelessWidget {
   const _EntryTile({required this.filename});
-
+ 
   final String filename;
-
+ 
   @override
   Widget build(BuildContext context) {
     return ListTile(
@@ -102,3 +111,4 @@ class _EntryTile extends StatelessWidget {
     );
   }
 }
+
