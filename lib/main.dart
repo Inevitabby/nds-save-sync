@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nds_save_sync/modals/onboarding.dart';
+import 'package:nds_save_sync/persistence.dart';
 import 'package:nds_save_sync/screens/archive.dart';
 import 'package:nds_save_sync/screens/dashboard.dart';
 
 void main() {
   runApp(
     const ProviderScope(
-      child: App()
-    )
+      child: App(),
+    ),
   );
 }
 
@@ -35,6 +37,23 @@ class _AppShellState extends State<AppShell> {
   final _controller = PageController();
 
   @override
+  void initState() {
+    super.initState();
+    _onboardingCheck();
+  }
+
+  Future<void> _onboardingCheck() async {
+    final persisted = await Persistence.load();
+    if (persisted.onboardingDone) return;
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Onboarding(),
+    );
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -54,9 +73,9 @@ class _AppShellState extends State<AppShell> {
 
 class _KeepAlive extends StatefulWidget {
   const _KeepAlive({required this.child});
- 
+
   final Widget child;
- 
+
   @override
   State<_KeepAlive> createState() => _KeepAliveState();
 }
@@ -65,7 +84,7 @@ class _KeepAliveState extends State<_KeepAlive>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
- 
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
