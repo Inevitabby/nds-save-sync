@@ -1,0 +1,37 @@
+007 Harvest Moon DS Grand Bazaar.nds
+009 Harvest Moon Tale of Two Towns.nds
+010 Harvest Moon Sunshine Islands.nds
+0102 - Nintendogs - Labrador & Friends (E)(Squirrels).nds
+013 Plants vs. Zombies.nds
+014 Kirby Mass Attack.nds
+016 Super Mario 64 DS.nds
+3541 - Pokemon Platinum Version (US)(XenoPhobia).nds
+4268 - Mario & Luigi - Bowser's Inside Story (E).nds
+4273 - Pokemon Mystery Dungeon - Explorers of Sky (USA).nds
+4780 - Pokemon HeartGold (U)(Xenophobia).nds
+[F] 0389 - Animal Crossing - Wild World (E)(Legacy).nds
+[F] 3873 Tomodachi Collection (JP) (patched).nds
+[F] Legend of Zelda, The - Phantom Hourglass (USA) (En,Fr,Es).nds
+[F] Pokemon Ultra Violet (1.22) LSA (Fire Red Hack).gba
+Castlevania III - Dracula's Curse (USA).nes
+Chrono Trigger (USA) (En,Fr).nds
+Clubhouse Games (USA) (En,Fr,De,Es,It) (Rev 1).nds
+Dragon Warrior III (USA).nes
+Final Fantasy (USA).nes
+Final Fantasy IV (USA) (En,Fr,Es).nds
+GBARunner3.nds
+Legend of Zelda, The (USA) (Rev 1).nes
+Legend of Zelda, The - A Link to the Past & Four Swords (USA).gba
+Legend of Zelda, The - The Minish Cap (USA).gba
+Mega Man 2 (USA).nes
+Metroid (USA).nes
+Mother 3 (Japan).gba
+Ninja Gaiden (USA).nes
+Phoenix Wright - Ace Attorney (USA).nds
+Pokemon Mystery Dungeon - Explorers of Sky (Europe) (En,Fr,De,Es,It).nds
+Rune Factory 3 - A Fantasy Harvest Moon (USA).nds
+Space Invaders Extreme (USA) (En,Ja,Fr,De,Es,It).nds
+Super Mario Bros. 3 (USA) (Rev 1).nes
+Tetris (USA) (Tengen) (Unl).nes
+Tetris DS (Europe) (En,Fr,De,Es,It).nds
+World Ends with You, The (USA).nds
