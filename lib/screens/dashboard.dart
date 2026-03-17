@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nds_save_sync/modals/browser.dart';
@@ -93,7 +94,9 @@ class _DashboardState extends ConsumerState<Dashboard> {
       case SyncState.syncing:
         break; // ignore
       case SyncState.success:
-        controller.reset(); // TODO this is horrible and only for debugging!!!
+        if (kDebugMode) {
+          controller.reset();
+        }
         break;
 
       case SyncState.error: // TODO only for debugging
@@ -313,7 +316,7 @@ String _getText(SyncState state) {
     SyncState.connecting => 'CONNECTING...',
     SyncState.connected  => 'CONNECTED (Tap to Sync)',
     SyncState.syncing    => 'SYNCING...',
-    SyncState.success    => 'SUCCESS',
+    SyncState.success    => 'SUCCESS (Swipe left see your saves)',
     SyncState.error      => 'ERROR (Tap to Retry)',
   };
 }
