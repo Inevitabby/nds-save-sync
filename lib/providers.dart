@@ -18,9 +18,11 @@ class AppModel {
   const AppModel({
     required this.ftp,
     this.archiveUri,
+    this.consecutiveConnectFailures = 0,
     this.lastIp,
     this.lastPort,
     this.lastSyncResult,
+    this.notification,
     this.saveDir,
     this.syncProgress,
     this.syncState = SyncState.idle,
@@ -28,18 +30,22 @@ class AppModel {
  
   final FtpClient ftp;
   final String? archiveUri;
+  final int consecutiveConnectFailures;
   final String? lastIp;
   final int? lastPort;
   final SyncResult? lastSyncResult;
+  final String? notification;
   final String? saveDir;
   final SyncProgress? syncProgress;
   final SyncState syncState;
  
   AppModel copyWith({
     String? archiveUri,
+    int? consecutiveConnectFailures,
     String? lastIp,
     int? lastPort,
     SyncResult? lastSyncResult,
+    String? notification,
     String? saveDir,
     SyncProgress? syncProgress,
     SyncState? syncState,
@@ -47,9 +53,11 @@ class AppModel {
     return AppModel(
       ftp: ftp,
       archiveUri: archiveUri ?? this.archiveUri,
+      consecutiveConnectFailures: consecutiveConnectFailures ?? this.consecutiveConnectFailures,
       lastIp: lastIp ?? this.lastIp,
       lastPort: lastPort ?? this.lastPort,
       lastSyncResult: lastSyncResult ?? this.lastSyncResult,
+      notification: notification ?? this.notification,
       saveDir: saveDir ?? this.saveDir,
       syncProgress: syncProgress ?? this.syncProgress,
       syncState: syncState ?? this.syncState,
@@ -59,12 +67,16 @@ class AppModel {
   AppModel clearProgress() => AppModel(
     ftp: ftp,
     archiveUri: archiveUri,
+    consecutiveConnectFailures: consecutiveConnectFailures,
     lastIp: lastIp,
     lastPort: lastPort,
     lastSyncResult: lastSyncResult,
+    notification: notification,
     saveDir: saveDir,
     syncState: syncState,
   );
+
+  AppModel clearNotification() => copyWith(notification: '');
 }
 
 /*
@@ -96,13 +108,19 @@ class AppController extends AsyncNotifier<AppModel> {
     if (success) {
       _update(_model.copyWith(
         syncState: SyncState.connected,
+        consecutiveConnectFailures: 0,
         lastIp: ip,
         lastPort: port,
+        notification: '',
       ));
       await Persistence.saveLastIp(ip);
       await Persistence.saveLastPort(port);
     } else {
-      _update(_model.copyWith(syncState: SyncState.error));
+      _update(_model.copyWith(
+        syncState: SyncState.idle,
+        consecutiveConnectFailures: _model.consecutiveConnectFailures + 1,
+        notification: "Couldn't reach $ip:$port. Is your DS on?",
+      ));
     }
     return success;
   }
@@ -113,24 +131,25 @@ class AppController extends AsyncNotifier<AppModel> {
     await Persistence.saveSaveDir(path);
   }
 
-  Future<String?> setArchiveUri() async {
+  // Returns the picked URI, or null if the user cancelled.
+  Future<String?> pickArchiveUri() async {
     final uri = await SafFolderPicker.pickFolder();
     if (uri != null) {
-      _update(_model.copyWith(archiveUri: uri));
+      _update(_model.copyWith(archiveUri: uri, notification: ''));
       await Persistence.saveArchiveUri(uri);
+    } else {
+      _update(_model.copyWith(notification: 'User cancelled folder selection.'));
     }
     return uri;
   }
 
+  void clearNotification() => _update(_model.clearNotification());
+
   Future<void> sync() async {
     if (_model.saveDir == null || !_model.ftp.isConnected) return;
-    _update(_model.copyWith(syncState: SyncState.syncing));
+    if (_model.archiveUri == null) return;
 
-    if (_model.archiveUri == null) {
-      // TODO need a popup or something to ask the user "Where would you like to store your save backups?" first
-      final uri = await setArchiveUri();
-      if (uri == null) return;
-    }
+    _update(_model.copyWith(syncState: SyncState.syncing, notification: ''));
 
     // Temporary staging dir
     final tempBase = await getTemporaryDirectory();
@@ -175,18 +194,24 @@ class AppController extends AsyncNotifier<AppModel> {
         },
       );
 
+      final combined = SyncResult(
+        changed: syncResult.changed,
+        unchanged: syncResult.unchanged,
+        failures: [...downloadResult.failures, ...syncResult.failures],
+      );
+
       _update(
         _model.clearProgress().copyWith(
           syncState: SyncState.success,
-          lastSyncResult: SyncResult(
-            changed: syncResult.changed,
-            unchanged: syncResult.unchanged,
-            failures: [...downloadResult.failures, ...syncResult.failures],
-          ),
+          lastSyncResult: combined,
+          notification: _outcomeNotification(combined),
         ),
       );
     } catch (e) {
-      _update(_model.clearProgress().copyWith(syncState: SyncState.error));
+      _update(_model.clearProgress().copyWith(
+        syncState: SyncState.error,
+        notification: 'Sync failed.',
+      ));
     } finally {
       try {
         if (await stagingDir.exists()) await stagingDir.delete(recursive: true);
@@ -198,6 +223,20 @@ class AppController extends AsyncNotifier<AppModel> {
     await _model.ftp.disconnect();
     ref.invalidateSelf();
   }
+}
+
+String _outcomeNotification(SyncResult result) {
+  final updated = result.changed.length;
+  final failed  = result.failures.length;
+
+  if (failed > 0 && updated == 0) {
+    return '$failed save${failed == 1 ? '' : 's'} failed. Tap for details.';
+  }
+  if (failed > 0) {
+    return '$updated save${updated == 1 ? '' : 's'} updated. $failed failed. Tap for details.';
+  }
+  if (updated == 0) return 'All saves up to date.';
+  return '$updated save${updated == 1 ? '' : 's'} updated.';
 }
 
 /* 

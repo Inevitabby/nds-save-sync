@@ -36,6 +36,10 @@ class SyncProgress {
   final int done;
   final int total;
   final SyncPhase phase;
+
+  int get fileIndex => done;
+
+  double get fraction => total == 0 ? 0.0 : done / total;
 }
 
 enum SyncPhase { downloading, archiving }

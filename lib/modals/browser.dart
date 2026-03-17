@@ -46,11 +46,12 @@ setState(() => _currentPath = dir);
   }
 
   // TODO Is some cleanup w.r.t. FTPConnect needed when this widget is destroyed?
-  // TODO Should phone back button be hooked-up to navigating backwards whenb not at root?
+  // TODO Should phone back button be hooked-up to navigating backwards when not at root?
   @override
   Widget build(BuildContext context) {
     return Modal(
       title: 'Select Backup Folder',
+      subtitle: 'Navigate to the folder containing your .sav files.',
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,

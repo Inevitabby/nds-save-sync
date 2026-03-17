@@ -5,10 +5,12 @@ class Modal extends StatelessWidget {
     required this.title,
     required this.child,
     super.key,
+    this.subtitle,
     this.resizeForKeyboard = false,
   });
 
   final String title;
+  final String? subtitle;
   final Widget child;
   final bool resizeForKeyboard;
 
@@ -33,6 +35,16 @@ class Modal extends StatelessWidget {
               style: Theme.of(context).textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 6),
+              Text(
+                subtitle!,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
             const SizedBox(height: 16),
             child,
           ],
