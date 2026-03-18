@@ -45,8 +45,6 @@ class Dashboard extends ConsumerStatefulWidget {
 }
 
 class _DashboardState extends ConsumerState<Dashboard> {
-  bool _showFailures = false;
-
   Future<void> _onPressed(AppModel appState) async {
     final controller = ref.read(appProvider.notifier);
 
@@ -169,17 +167,13 @@ class _DashboardState extends ConsumerState<Dashboard> {
         body: Center(child: Text('Failed to load: $err')),
       ),
       data: (appState) {
-        final colorScheme = Theme.of(context).colorScheme;
         return Scaffold(
           body: SafeArea(
             child: Column(
               children: [
-                Expanded(
+                const Expanded(
                   flex: 2,
-                  child: Container(
-                    decoration: BoxDecoration(border: BoxBorder.all(color: colorScheme.primary)),
-                    child: const Center(child: Text('Network')),
-                  ),
+                  child: SizedBox.shrink(),
                 ),
                 Expanded(
                   flex: 4,
@@ -192,21 +186,13 @@ class _DashboardState extends ConsumerState<Dashboard> {
                 ),
                 Expanded(
                   flex: 2,
-                  child: Container(
-                    decoration: BoxDecoration(border: BoxBorder.all(color: colorScheme.primary)),
-                    child: _NotificationsPanel(
-                      appState: appState,
-                      showFailures: _showFailures,
-                      onToggleFailures: () => setState(() => _showFailures = !_showFailures),
-                    ),
+                  child: _NotificationsPanel(
+                    appState: appState,
                   ),
                 ),
-                Expanded(
+                const Expanded(
                   flex: 1,
-                  child: Container(
-                    decoration: BoxDecoration(border: BoxBorder.all(color: colorScheme.primary)),
-                    child: const Center(child: Text('Slider Indicators')),
-                  ),
+                  child: SizedBox.shrink(),
                 ),
               ],
             ),
@@ -218,22 +204,12 @@ class _DashboardState extends ConsumerState<Dashboard> {
 }
 
 class _NotificationsPanel extends StatelessWidget {
-  const _NotificationsPanel({
-    required this.appState,
-    required this.showFailures,
-    required this.onToggleFailures,
-  });
+  const _NotificationsPanel({required this.appState});
 
   final AppModel appState;
-  final bool showFailures;
-  final VoidCallback onToggleFailures;
 
   bool get _hasNotification =>
       appState.notification != null && appState.notification!.isNotEmpty;
-
-  bool get _hasFailures =>
-      (appState.lastSyncResult?.hasFailures ?? false) &&
-      (_hasNotification && appState.notification!.contains('tap for details'));
 
   @override
   Widget build(BuildContext context) {
@@ -261,41 +237,10 @@ class _NotificationsPanel extends StatelessWidget {
                     duration: const Duration(milliseconds: 400),
                     builder: (_, value, __) => LinearProgressIndicator(value: value),
                   ),
-          ] else if (_hasNotification) ...[
-            _hasFailures
-                ? GestureDetector(
-                    onTap: onToggleFailures,
-                    child: Text(
-                      appState.notification!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        decoration: TextDecoration.underline,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  )
-                : Text(
-                    appState.notification!,
-                    style: Theme.of(context).textTheme.bodySmall,
-                    textAlign: TextAlign.center,
-                  ),
-            if (showFailures && _hasFailures) ...[
-              const SizedBox(height: 8),
-              ...appState.lastSyncResult!.failures.map(
-                (f) => Text(
-                  f,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
-          ] else
+          ] else if (_hasNotification)
             Text(
-              'Notifications',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+              appState.notification!,
+              style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
         ],

@@ -225,17 +225,20 @@ class AppController extends AsyncNotifier<AppModel> {
   }
 }
 
+// TODO swipe right for log
 String _outcomeNotification(SyncResult result) {
   final updated = result.changed.length;
   final failed  = result.failures.length;
 
-  if (failed > 0 && updated == 0) {
-    return '$failed save${failed == 1 ? '' : 's'} failed. Tap for details.';
+  if (failed > 0 && updated == 0) { // swipe right?
+    return '$failed save${failed == 1 ? '' : 's'} failed.'; 
   }
-  if (failed > 0) {
-    return '$updated save${updated == 1 ? '' : 's'} updated. $failed failed. Tap for details.';
+  if (failed > 0) { // swipe right?
+    return '$updated save${updated == 1 ? '' : 's'} updated. $failed failed.';
   }
-  if (updated == 0) return 'All saves up to date.';
+  if (updated == 0) {
+    return 'All saves up to date. Swipe left to see save archive.';
+  }
   return '$updated save${updated == 1 ? '' : 's'} updated.';
 }
 
