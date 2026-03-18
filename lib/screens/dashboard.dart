@@ -5,6 +5,7 @@ import 'package:nds_save_sync/modals/browser.dart';
 import 'package:nds_save_sync/modals/ip_entry.dart';
 import 'package:nds_save_sync/providers.dart';
 import 'package:nds_save_sync/sync.dart';
+import 'package:nds_save_sync/widgets/sync_button.dart';
 
 // STATES
 // 
@@ -182,13 +183,10 @@ class _DashboardState extends ConsumerState<Dashboard> {
                 ),
                 Expanded(
                   flex: 4,
-                  child: Container(
-                    decoration: BoxDecoration(border: BoxBorder.all(color: colorScheme.primary)),
-                    child: Center(
-                      child: TextButton(
-                        onPressed: () => _onPressed(appState),
-                        child: Text(_getText(appState.syncState)),
-                      ),
+                  child: Center(
+                    child: SyncButton(
+                      state: appState.syncState,
+                      onPressed: () => _onPressed(appState),
                     ),
                   ),
                 ),
@@ -312,15 +310,4 @@ String _progressText(SyncProgress progress) {
     SyncPhase.archiving   => 'Archiving',
   };
   return '$verb ${progress.currentFile} [${progress.fileIndex} / ${progress.total}]';
-}
-
-String _getText(SyncState state) {
-  return switch (state) {
-    SyncState.idle       => 'IDLE (Tap to Connect)',
-    SyncState.connecting => 'CONNECTING...',
-    SyncState.connected  => 'CONNECTED (Tap to Sync)',
-    SyncState.syncing    => 'SYNCING...',
-    SyncState.success    => 'SUCCESS (Swipe left see your saves)',
-    SyncState.error      => 'ERROR (Tap to Retry)',
-  };
 }
