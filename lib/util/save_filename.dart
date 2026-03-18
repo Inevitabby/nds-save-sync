@@ -1,3 +1,4 @@
+import 'dart:core';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
@@ -42,6 +43,22 @@ class SaveFilename {
       }
     }
     return filename;
+  }
+
+  // game.2026-01-01_1200.sav -> DateTime
+  DateTime? getTime(String filename) {
+    final stem = filename;
+    if (stem.length >= _tsLength) {
+      final raw = stem.substring(stem.length - _tsLength + 1); // strip leading dot
+      if (raw.length == 15) {
+        try {
+          return DateTime.parse(
+            '${raw.substring(0, 10)}T${raw.substring(11, 15)}00',
+          );
+        } catch (_) {}
+      }
+    }
+    return null;
   }
 
   // game.sav -> human-readable display name
