@@ -47,6 +47,7 @@ dependencies:
   intl: any
   timeago: ^3.7.1
   share_plus: ^12.0.1
+  google_fonts: ^8.0.2
 dev_dependencies:
   flutter_test:
     sdk: flutter
