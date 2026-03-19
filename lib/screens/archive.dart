@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:nds_save_sync/constants.dart';
 import 'package:nds_save_sync/providers.dart';
 import 'package:nds_save_sync/saf.dart';
@@ -88,9 +89,9 @@ class Archive extends ConsumerWidget {
         ),
       );
     }
-    return ListView.separated(
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
       itemCount: groups.length,
-      separatorBuilder: (_, _) => const Divider(height: 1),
       itemBuilder: (context, i) => _GameTile(group: groups[i]),
     );
   }
@@ -106,32 +107,52 @@ class _GameTile extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final count = group.entries.length;
+    final borderRadius = BorderRadius.circular(12);
+    // Borderless shape suppresses the divider lines ExpansionTile draws internally
+    const tileBorder = RoundedRectangleBorder();
 
-    return ExpansionTile(
-      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      title: Text(
-        group.displayName,
-        style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Text(
-        group.entries.isNotEmpty &&
-                SaveFilename.getTimestamp(group.entries.first) != null
-            ? 'Last backup ${timeago.format(SaveFilename.getTimestamp(group.entries.first)!)}'
-            : group.gameName,
-        style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '$count backup${count == 1 ? '' : 's'}',
-            style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      color: cs.surfaceContainerLow,
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: borderRadius),
+      clipBehavior: Clip.antiAlias,
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        backgroundColor: cs.surfaceContainerHigh,
+        shape: tileBorder,
+        collapsedShape: tileBorder,
+        title: Text(
+          group.displayName,
+          style: tt.titleMedium?.copyWith(
+            letterSpacing: -0.1,
+            fontWeight: FontWeight.w600,
           ),
-          const SizedBox(width: 4),
-          const Icon(Icons.expand_more),
+        ),
+        subtitle: Text(
+          group.entries.isNotEmpty &&
+                  SaveFilename.getTimestamp(group.entries.first) != null
+              ? 'Last backup ${timeago.format(SaveFilename.getTimestamp(group.entries.first)!)}'
+              : group.gameName,
+          style: tt.bodySmall?.copyWith(
+            color: cs.onSurfaceVariant.withValues(alpha: 0.9),
+          ),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '$count backup${count == 1 ? '' : 's'}',
+              style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.expand_more),
+          ],
+        ),
+        children: [
+          _TimelineList(entries: group.entries),
         ],
       ),
-      children: [_TimelineList(entries: group.entries)],
     );
   }
 }
@@ -175,7 +196,7 @@ class _TimelineEntry extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final timestamp = SaveFilename.getTimestamp(filename);
-    final dimColor = cs.onSurfaceVariant.withValues(alpha: 0.3);
+    final dimColor = cs.onSurfaceVariant.withValues(alpha: 0.4);
 
     return IntrinsicHeight(
       child: Row(
@@ -215,9 +236,8 @@ class _TimelineEntry extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Material(
-                color: cs.surfaceContainerHighest.withValues(alpha: 0.4),
+                color: cs.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
-                elevation: 1,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(8),
                   onTap: () async {
@@ -245,14 +265,16 @@ class _TimelineEntry extends ConsumerWidget {
                         Text(
                           timestamp != null ? timeago.format(timestamp) : '???',
                           style: tt.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           filename,
-                          style: tt.bodySmall?.copyWith(
-                            color: cs.onSurfaceVariant,
+                          style: GoogleFonts.jetBrainsMono(
+                            textStyle: tt.bodySmall?.copyWith(
+                              color: cs.onSurfaceVariant,
+                            ),
                           ),
                         ),
                       ],
