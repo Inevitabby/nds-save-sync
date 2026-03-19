@@ -9,7 +9,7 @@ class FtpClient {
   bool get isConnected => _client != null;
   
   Future<bool> connect(String ip, int port) async {
-    final client = FTPConnect(ip, port: port);
+    final client = FTPConnect(timeout: 10, ip, port: port);
     try {
       await client.connect();
       _client = client;
