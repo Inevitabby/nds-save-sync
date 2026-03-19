@@ -39,7 +39,27 @@ class _AppShellState extends State<AppShell> {
   @override
   void initState() {
     super.initState();
+    _controller.addListener(() => setState(() {}));
     _onboardingCheck();
+  }
+
+  Widget _dots() {
+    final page = _controller.hasClients ? (_controller.page ?? 0) : 0;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [0, 1].map((i) {
+        final opacity = 1.0 - ((page - i).abs()).clamp(0.0, 0.7);
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white.withValues(alpha: opacity),
+          ),
+        );
+      }).toList(),
+    );
   }
 
   Future<void> _onboardingCheck() async {
@@ -61,11 +81,21 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    return PageView(
-      controller: _controller,
-      children: const [
-        _KeepAlive(child: Dashboard()),
-        Archive(),
+    return Stack(
+      children: [
+        PageView(
+          controller: _controller,
+          children: const [
+            _KeepAlive(child: Dashboard()),
+            Archive(),
+          ],
+        ),
+        Positioned(
+          bottom: 24,
+          left: 0,
+          right: 0,
+          child: _dots(),
+        ),
       ],
     );
   }
