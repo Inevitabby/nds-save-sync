@@ -3,7 +3,7 @@ import 'dart:convert';
 
 // ROM filename -> human-readable title conversion tester
 //
-// USAGE: cat ./names/ds.txt | dart run nametest.dart | head -n 20
+// USAGE: cat ./.names/ds.txt | dart run nametest.dart | head -n 20
 
 final tag = RegExp(r'\(([^)]*)\)');
 
