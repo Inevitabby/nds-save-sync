@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nds_save_sync/constants.dart';
 import 'package:nds_save_sync/providers.dart';
 import 'package:nds_save_sync/saf.dart';
 import 'package:nds_save_sync/util/save_filename.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class SaveGroup {
@@ -156,7 +159,7 @@ class _TimelineList extends StatelessWidget {
   }
 }
 
-class _TimelineEntry extends StatelessWidget {
+class _TimelineEntry extends ConsumerWidget {
   const _TimelineEntry({
     required this.filename,
     required this.isFirst,
@@ -168,7 +171,7 @@ class _TimelineEntry extends StatelessWidget {
   final bool isLast;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final timestamp = SaveFilename.getTimestamp(filename);
@@ -211,49 +214,50 @@ class _TimelineEntry extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: cs.surfaceContainerHighest.withValues(alpha: 0.4),
+              child: Material(
+                color: cs.surfaceContainerHighest.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(8),
+                elevation: 1,
+                child: InkWell(
                   borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              timestamp != null
-                                  ? timeago.format(timestamp)
-                                  : '???',
-                              style: tt.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              filename,
-                              style: tt.bodySmall?.copyWith(
-                                color: cs.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                  onTap: () async {
+                    final archiveUri = ref.read(appProvider).value?.archiveUri;
+                    if (archiveUri == null) return;
+                    final bytes = await SafFolderPicker.readFile(
+                      archiveUri: archiveUri,
+                      filename: filename,
+                      subdir: archiveSubdir,
+                    );
+                    if (bytes == null) return;
+                    final tmp = await getTemporaryDirectory();
+                    final file = XFile('${tmp.path}/$filename');
+                    await File(file.path).writeAsBytes(bytes);
+                    await SharePlus.instance.share(ShareParams(files: [file]));
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
                     ),
-                    // TODO What is the cheapest, most-useful thing that we can provide here?
-                    // IconButton(
-                    //   icon: Icon(Icons.history, color: cs.onSurfaceVariant),
-                    //   onPressed: () {
-                    //     // TODO: restore this backup
-                    //   },
-                    // ),
-                  ],
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          timestamp != null ? timeago.format(timestamp) : '???',
+                          style: tt.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          filename,
+                          style: tt.bodySmall?.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
