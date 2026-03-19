@@ -12,14 +12,29 @@ class SyncButton extends StatefulWidget {
 }
 
 class _SyncButtonState extends State<SyncButton>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _spin = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 900),
   );
-  bool _pressed = false;
 
-  bool get _busy => widget.state == SyncState.connecting || widget.state == SyncState.syncing;
+  late final AnimationController _press = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 100),
+    reverseDuration: const Duration(milliseconds: 200),
+  );
+
+  late final Animation<double> _scale = Tween(begin: 1.0, end: 0.93).animate(
+    CurvedAnimation(
+      parent: _press,
+      curve: Curves.easeOut,
+      reverseCurve: Curves.easeIn,
+    ),
+  );
+
+  bool get _busy =>
+      widget.state == SyncState.connecting ||
+      widget.state == SyncState.syncing;
 
   @override
   void initState() {
@@ -41,7 +56,24 @@ class _SyncButtonState extends State<SyncButton>
   @override
   void dispose() {
     _spin.dispose();
+    _press.dispose();
     super.dispose();
+  }
+
+  Future<void> _onTapDown(_) async {
+    if (_busy) return;
+    _press.forward();
+  }
+
+  Future<void> _onTapUp(_) async {
+    if (_busy) return;
+    await _press.reverse();
+    widget.onPressed();
+  }
+
+  Future<void> _onTapCancel() async {
+    if (_busy) return;
+    await _press.reverse();
   }
 
   @override
@@ -50,18 +82,11 @@ class _SyncButtonState extends State<SyncButton>
     final color = _color(cs, widget.state);
 
     return GestureDetector(
-      onTapDown: _busy ? null : (_) => setState(() => _pressed = true),
-      onTapCancel: _busy ? null : () => setState(() => _pressed = false),
-      onTapUp: _busy
-          ? null
-          : (_) async {
-              setState(() => _pressed = false);
-              await Future<void>.delayed(const Duration(milliseconds: 120));
-              widget.onPressed();
-            },
-      child: AnimatedScale(
-        scale: _pressed ? 0.93 : 1.0,
-        duration: const Duration(milliseconds: 80),
+      onTapDown: _onTapDown,
+      onTapUp: _onTapUp,
+      onTapCancel: _onTapCancel,
+      child: ScaleTransition(
+        scale: _scale,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           width: 192,
@@ -69,6 +94,13 @@ class _SyncButtonState extends State<SyncButton>
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: color,
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.3),
+                blurRadius: 4,
+                spreadRadius: 2,
+              ),
+            ],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -96,29 +128,29 @@ class _SyncButtonState extends State<SyncButton>
 Color _color(ColorScheme cs, SyncState state) {
   final isDark = cs.brightness == Brightness.dark;
   return switch (state) {
-    SyncState.idle => isDark ? Colors.blue[300]! : Colors.blue[700]!,
+    SyncState.idle      => isDark ? Colors.blue[300]! : Colors.blue[700]!,
     SyncState.connecting => cs.primary,
     SyncState.connected => isDark ? Colors.blue[300]! : Colors.blue[700]!,
-    SyncState.syncing => cs.primary,
-    SyncState.success => isDark ? Colors.green[300]! : Colors.green[700]!,
-    SyncState.error => cs.error,
+    SyncState.syncing   => cs.primary,
+    SyncState.success   => isDark ? Colors.green[300]! : Colors.green[700]!,
+    SyncState.error     => cs.error,
   };
 }
 
 IconData _icon(SyncState state) => switch (state) {
-  SyncState.idle => Icons.power_settings_new,
+  SyncState.idle      => Icons.power_settings_new,
   SyncState.connecting => Icons.sync,
   SyncState.connected => Icons.sync,
-  SyncState.syncing => Icons.sync,
-  SyncState.success => Icons.check_circle_outline,
-  SyncState.error => Icons.sync_problem,
+  SyncState.syncing   => Icons.sync,
+  SyncState.success   => Icons.check_circle_outline,
+  SyncState.error     => Icons.sync_problem,
 };
 
 String _label(SyncState state) => switch (state) {
-  SyncState.idle => 'CONNECT',
+  SyncState.idle      => 'CONNECT',
   SyncState.connecting => 'CONNECTING',
   SyncState.connected => 'TAP TO SYNC',
-  SyncState.syncing => 'SYNCING',
-  SyncState.success => 'SUCCESS',
-  SyncState.error => 'TAP TO RETRY',
+  SyncState.syncing   => 'SYNCING',
+  SyncState.success   => 'SUCCESS',
+  SyncState.error     => 'TAP TO RETRY',
 };
