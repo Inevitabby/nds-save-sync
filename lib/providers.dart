@@ -146,10 +146,28 @@ class AppController extends AsyncNotifier<AppModel> {
   void clearNotification() => _update(_model.clearNotification());
 
   Future<void> sync() async {
-    if (_model.saveDir == null || !_model.ftp.isConnected) return;
+    if (_model.saveDir == null) return;
     if (_model.archiveUri == null) return;
 
     _update(_model.copyWith(syncState: SyncState.syncing, notification: ''));
+
+    // Attempt a reconnect if disconnected
+    if (!_model.ftp.isConnected) {
+      if (_model.lastIp == null || _model.lastPort == null) return;
+      final reconnected = await _model.ftp.connect(
+        _model.lastIp!,
+        _model.lastPort!,
+      );
+      if (!reconnected) {
+        _update(
+          _model.copyWith(
+            syncState: SyncState.error,
+            notification: 'Lost connection to DS.',
+          ),
+        );
+        return;
+      }
+    }
 
     // Temporary staging dir
     final tempBase = await getTemporaryDirectory();

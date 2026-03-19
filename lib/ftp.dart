@@ -78,9 +78,7 @@ class FtpClient {
     required Directory stagingDir,
     void Function(String filename, int done, int total)? onProgress,
   }) async {
-    if (_client == null) {
-      return const DownloadResult(files: {}, failures: []);
-    }
+    if (_client == null) throw StateError('Not connected.');
 
     await _client!.changeDirectory(remoteDir);
     final saves = (await list())
