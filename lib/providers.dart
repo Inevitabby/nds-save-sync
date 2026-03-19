@@ -117,7 +117,7 @@ class AppController extends AsyncNotifier<AppModel> {
         consecutiveConnectFailures: 0,
         lastIp: ip,
         lastPort: port,
-        notification: 'Connected to DS.',
+        notification: 'Connected to NDS.',
       ));
       await Persistence.saveLastIp(ip);
       await Persistence.saveLastPort(port);
@@ -125,13 +125,13 @@ class AppController extends AsyncNotifier<AppModel> {
       _update(_model.copyWith(
         syncState: SyncState.idle,
         consecutiveConnectFailures: _model.consecutiveConnectFailures + 1,
-        notification: "Couldn't reach $ip:$port. Is your DS on?",
+        notification: "Couldn't reach $ip:$port. Is your NDS on?",
       ));
     }
     return success;
   }
 
-  // TODO Perhaps calling all the DS stuff "remoteX" would be better...
+  // TODO Perhaps calling all the NDS stuff "remoteX" would be better...
   Future<void> setSaveDir(String path) async {
     _update(_model.copyWith(saveDir: path));
     await Persistence.saveSaveDir(path);
@@ -168,7 +168,7 @@ class AppController extends AsyncNotifier<AppModel> {
         _update(
           _model.copyWith(
             syncState: SyncState.error,
-            notification: 'Lost connection to DS.',
+            notification: 'Lost connection to NDS.',
           ),
         );
         return;
