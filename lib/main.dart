@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:nds_save_sync/modals/onboarding.dart';
 import 'package:nds_save_sync/persistence.dart';
 import 'package:nds_save_sync/screens/archive.dart';
@@ -20,7 +21,9 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'NDS Save Sync',
-      theme: ThemeData.dark(),
+      theme: ThemeData.dark().copyWith(
+        textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+      ),
       home: const AppShell(),
     );
   }
