@@ -12,107 +12,254 @@ class SaveGroup {
     required this.displayName,
     required this.entries,
   });
-  final String gameName;      // e.g. game.sav
+  final String gameName;
   final String displayName;
   final List<String> entries; // timestamped filenames sorted newest first
 }
 
-// Loads and groups archived saves from .archive
-final FutureProvider<List<SaveGroup>> archiveProvider = FutureProvider.autoDispose<List<SaveGroup>>((ref) async {
-  final archiveUri = ref.watch(appProvider).value?.archiveUri;
-  if (archiveUri == null) return [];
- 
-  final files = await SafFolderPicker.listFiles(
-    archiveUri: archiveUri,
-    subdir: archiveSubdir,
-  );
- 
-  final Map<String, List<String>> grouped = {};
-  for (final filename in files) {
-    grouped
-        .putIfAbsent(SaveFilename.original(filename), () => [])
-        .add(filename);
-  }
- 
-  return grouped.entries.map((e) {
-    final sorted = List<String>.from(e.value)..sort((a, b) => b.compareTo(a));
-    return SaveGroup(
-      gameName: e.key,
-      displayName: SaveFilename.displayName(e.key),
-      entries: sorted,
-    );
-  }).toList()
-    ..sort((a, b) => a.displayName.compareTo(b.displayName));
-});
+final FutureProvider<List<SaveGroup>> archiveProvider =
+    FutureProvider.autoDispose<List<SaveGroup>>((ref) async {
+      final archiveUri = ref.watch(appProvider).value?.archiveUri;
+      if (archiveUri == null) return [];
+
+      final files = await SafFolderPicker.listFiles(
+        archiveUri: archiveUri,
+        subdir: archiveSubdir,
+      );
+
+      final Map<String, List<String>> grouped = {};
+      for (final filename in files) {
+        grouped
+            .putIfAbsent(SaveFilename.original(filename), () => [])
+            .add(filename);
+      }
+
+      return grouped.entries.map((e) {
+        final sorted = List<String>.from(e.value)
+          ..sort((a, b) => b.compareTo(a));
+        return SaveGroup(
+          gameName: e.key,
+          displayName: SaveFilename.displayName(e.key),
+          entries: sorted,
+        );
+      }).toList()..sort((a, b) => a.displayName.compareTo(b.displayName));
+    });
 
 class Archive extends ConsumerWidget {
   const Archive({super.key});
- 
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final archiveAsync = ref.watch(archiveProvider);
-    final archiveUri   = ref.watch(appProvider).value?.archiveUri;
- 
+    final archiveUri = ref.watch(appProvider).value?.archiveUri;
+
     return Scaffold(
       body: switch (archiveAsync) {
         AsyncLoading() => const Center(child: CircularProgressIndicator()),
-        AsyncError(:final error) => Center(child: Text('Failed to load: $error')),
-        AsyncData(:final value)  => _body(context, archiveUri, value),
+        AsyncError(:final error) => Center(
+          child: Text('Failed to load: $error'),
+        ),
+        AsyncData(:final value) => _body(context, archiveUri, value),
       },
     );
   }
- 
-  Widget _body(BuildContext context, String? archiveUri, List<SaveGroup> groups) {
+
+  Widget _body(
+    BuildContext context,
+    String? archiveUri,
+    List<SaveGroup> groups,
+  ) {
     if (archiveUri == null) {
-      return const Center(child: Text('No archive folder selected yet.\nRun a sync first.', textAlign: TextAlign.center));
+      return const Center(
+        child: Text(
+          'No archive folder selected yet.\nRun a sync first.',
+          textAlign: TextAlign.center,
+        ),
+      );
     }
     if (groups.isEmpty) {
-      return const Center(child: Text('No backups yet.\nRun a sync to start archiving.', textAlign: TextAlign.center));
+      return const Center(
+        child: Text(
+          'No backups yet.\nRun a sync to start archiving.',
+          textAlign: TextAlign.center,
+        ),
+      );
     }
-    return ListView.builder(
+    return ListView.separated(
       itemCount: groups.length,
+      separatorBuilder: (_, _) => const Divider(height: 1),
       itemBuilder: (context, i) => _GameTile(group: groups[i]),
     );
   }
 }
- 
+
 class _GameTile extends StatelessWidget {
   const _GameTile({required this.group});
- 
+
   final SaveGroup group;
- 
+
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    final count = group.entries.length;
+
     return ExpansionTile(
-      title: Text(group.displayName),
-      subtitle: Text(
-        '${group.entries.length} backup${group.entries.length == 1 ? '' : 's'}',
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
+      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      title: Text(
+        group.displayName,
+        style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w600),
       ),
-      children: group.entries
-          .map((filename) => _EntryTile(filename: filename))
-          .toList(),
+      subtitle: Text(
+        group.entries.isNotEmpty &&
+                SaveFilename.getTimestamp(group.entries.first) != null
+            ? 'Last backup ${timeago.format(SaveFilename.getTimestamp(group.entries.first)!)}'
+            : group.gameName,
+        style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$count backup${count == 1 ? '' : 's'}',
+            style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+          ),
+          const SizedBox(width: 4),
+          const Icon(Icons.expand_more),
+        ],
+      ),
+      children: [_TimelineList(entries: group.entries)],
     );
   }
 }
- 
-class _EntryTile extends StatelessWidget {
-  const _EntryTile({required this.filename});
-  
-  final String filename;
-  
+
+class _TimelineList extends StatelessWidget {
+  const _TimelineList({required this.entries});
+
+  final List<String> entries;
+
   @override
   Widget build(BuildContext context) {
-    final timestamp = SaveFilename.getTimestamp(filename);
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, right: 8, bottom: 12),
+      child: Column(
+        children: [
+          for (var i = 0; i < entries.length; i++)
+            _TimelineEntry(
+              filename: entries[i],
+              isFirst: i == 0,
+              isLast: i == entries.length - 1,
+            ),
+        ],
+      ),
+    );
+  }
+}
 
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 32),
-      leading: const Icon(Icons.history),
-      title: Text(timestamp != null 
-        ? timeago.format(timestamp) 
-        : '???'),
+class _TimelineEntry extends StatelessWidget {
+  const _TimelineEntry({
+    required this.filename,
+    required this.isFirst,
+    required this.isLast,
+  });
+
+  final String filename;
+  final bool isFirst;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    final timestamp = SaveFilename.getTimestamp(filename);
+    final dimColor = cs.onSurfaceVariant.withValues(alpha: 0.3);
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: 24,
+            child: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: isFirst
+                        ? const SizedBox.shrink()
+                        : Container(width: 2, color: dimColor),
+                  ),
+                ),
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: dimColor,
+                  ),
+                ),
+                Expanded(
+                  child: Center(
+                    child: isLast
+                        ? const SizedBox.shrink()
+                        : Container(width: 2, color: dimColor),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerHighest.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              timestamp != null
+                                  ? timeago.format(timestamp)
+                                  : '???',
+                              style: tt.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              filename,
+                              style: tt.bodySmall?.copyWith(
+                                color: cs.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // TODO What is the cheapest, most-useful thing that we can provide here?
+                    // IconButton(
+                    //   icon: Icon(Icons.history, color: cs.onSurfaceVariant),
+                    //   onPressed: () {
+                    //     // TODO: restore this backup
+                    //   },
+                    // ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
