@@ -4,6 +4,7 @@ import 'package:nds_save_sync/constants.dart';
 import 'package:nds_save_sync/providers.dart';
 import 'package:nds_save_sync/saf.dart';
 import 'package:nds_save_sync/util/save_filename.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class SaveGroup {
   const SaveGroup({
@@ -99,16 +100,19 @@ class _GameTile extends StatelessWidget {
  
 class _EntryTile extends StatelessWidget {
   const _EntryTile({required this.filename});
- 
+  
   final String filename;
- 
+  
   @override
   Widget build(BuildContext context) {
+    final timestamp = SaveFilename.getTimestamp(filename);
+
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 32),
       leading: const Icon(Icons.history),
-      title: Text(SaveFilename.formatTimestamp(filename)),
+      title: Text(timestamp != null 
+        ? timeago.format(timestamp) 
+        : '???'),
     );
   }
 }
-

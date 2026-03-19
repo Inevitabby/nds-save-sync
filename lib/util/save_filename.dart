@@ -10,6 +10,11 @@ class SaveFilename {
   static const _tsLength = 16; // .YYYY-MM-DD_HHMM
   static final _tsPattern = RegExp(r'^\.\d{4}-\d{2}-\d{2}_\d{4}$');
 
+  static final _tag = RegExp(r'\(([^)]*)\)');
+  static const _regions = { 'australia', 'canada', 'cn region lock', 'europe', 'france', 'germany', 'italy', 'japan', 'korea', 'netherlands', 'spain', 'taiwan', 'tw', 'usa', 'united kingdom', 'world', };
+  static const _languages = { 'ar', 'ca', 'da', 'de', 'en', 'es', 'fi', 'fr', 'fr-ca', 'it', 'ja', 'ko', 'nl', 'no', 'pt', 'ru', 'sv', 'tr', 'zh', 'zh-hans', 'zh-hant', };
+  static const _keywords = { 'e', 'jp', 'legacy', 'patched', 'squirrels', 'tengen', 'u', 'xenophobia', };
+
   // game.sav -> true
   static bool isSave(String name) =>
       p.extension(name.toLowerCase()) == _ext;
@@ -32,22 +37,9 @@ class SaveFilename {
     return filename;
   }
 
-  // game.2026-01-01_1200.sav -> 2026-01-01 12:00
-  // TODO human-readable relative?
-  static String formatTimestamp(String filename) {
-    final stem = p.basenameWithoutExtension(filename);
-    if (stem.length >= _tsLength) {
-      final raw = stem.substring(stem.length - _tsLength + 1); // strip leading dot
-      if (raw.length == 15 && raw[10] == '_') {
-        return '${raw.substring(0, 10)} ${raw.substring(11, 13)}:${raw.substring(13)}';
-      }
-    }
-    return filename;
-  }
-
   // game.2026-01-01_1200.sav -> DateTime
-  DateTime? getTime(String filename) {
-    final stem = filename;
+  static DateTime? getTimestamp(String filename) {
+    final stem = p.basenameWithoutExtension(filename);
     if (stem.length >= _tsLength) {
       final raw = stem.substring(stem.length - _tsLength + 1); // strip leading dot
       if (raw.length == 15) {
@@ -62,6 +54,17 @@ class SaveFilename {
   }
 
   // game.sav -> human-readable display name
-  // TODO implement
-  static String displayName(String filename) => filename;
+  static String displayName(String orig) => p.basenameWithoutExtension(orig)
+      .replaceAllMapped(_tag, (m) => _isNoise(m.group(1)!) ? '' : m.group(0)!)
+      .trim();
+
+  static bool _isNoise(String inner) {
+    final parts = inner.split(',').map((s) => s.trim().toLowerCase()).toList();
+    if (_regions.containsAll(parts)) return true;
+    if (_languages.containsAll(parts)) return true;
+    if (_keywords.contains(inner.trim().toLowerCase())) return true;
+    if (inner.startsWith('Rev ') && int.tryParse(inner.substring(4)) != null)
+      return true;
+    return false;
+  }
 }
