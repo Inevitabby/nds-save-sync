@@ -94,6 +94,7 @@ class AppController extends AsyncNotifier<AppModel> {
       lastPort: persisted.lastPort,
       saveDir: persisted.saveDir,
       archiveUri: persisted.archiveUri,
+      notification: 'Ready to connect to NDS.',
     );
   }
 
@@ -102,7 +103,12 @@ class AppController extends AsyncNotifier<AppModel> {
   void _update(AppModel next) => state = AsyncValue.data(next);
 
   Future<bool> connect(String ip, int port) async {
-    _update(_model.copyWith(syncState: SyncState.connecting));
+    _update(
+      _model.copyWith(
+        syncState: SyncState.connecting,
+        notification: 'Attempting to reach device...',
+      ),
+    );
 
     final success = await _model.ftp.connect(ip, port);
     if (success) {
@@ -111,7 +117,7 @@ class AppController extends AsyncNotifier<AppModel> {
         consecutiveConnectFailures: 0,
         lastIp: ip,
         lastPort: port,
-        notification: '',
+        notification: 'Connected to DS.',
       ));
       await Persistence.saveLastIp(ip);
       await Persistence.saveLastPort(port);
@@ -246,18 +252,18 @@ class AppController extends AsyncNotifier<AppModel> {
 // TODO swipe right for log
 String _outcomeNotification(SyncResult result) {
   final updated = result.changed.length;
-  final failed  = result.failures.length;
+  final failed = result.failures.length;
 
-  if (failed > 0 && updated == 0) { // swipe right?
-    return '$failed save${failed == 1 ? '' : 's'} failed.'; 
+  if (failed > 0 && updated == 0) {
+    return '$failed save${failed == 1 ? '' : 's'} failed.';
   }
-  if (failed > 0) { // swipe right?
-    return '$updated save${updated == 1 ? '' : 's'} updated. $failed failed.';
+  if (failed > 0) {
+    return '$updated archived. $failed failed.';
   }
   if (updated == 0) {
-    return 'All saves up to date. Swipe left to see save archive.';
+    return 'All saves checked, nothing new to archive.';
   }
-  return '$updated save${updated == 1 ? '' : 's'} updated.';
+  return '$updated save${updated == 1 ? '' : 's'} archived.';
 }
 
 /* 

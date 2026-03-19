@@ -226,7 +226,7 @@ class _NotificationsPanel extends StatelessWidget {
 
 String _progressText(SyncProgress progress) {
   final verb = switch (progress.phase) {
-    SyncPhase.downloading => 'Downloading...',
+    SyncPhase.downloading => 'Fetching from DS...',
     SyncPhase.archiving   => 'Archiving...',
   };
   return '$verb\n${progress.currentFile}';
