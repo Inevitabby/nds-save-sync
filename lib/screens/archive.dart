@@ -144,7 +144,7 @@ class _TimelineList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 8, bottom: 12),
+      padding: const EdgeInsets.fromLTRB(16, 8, 8, 16),
       child: Column(
         children: [
           for (var i = 0; i < entries.length; i++)
