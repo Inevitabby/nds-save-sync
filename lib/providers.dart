@@ -155,7 +155,12 @@ class AppController extends AsyncNotifier<AppModel> {
     if (_model.saveDir == null) return;
     if (_model.archiveUri == null) return;
 
-    _update(_model.copyWith(syncState: SyncState.syncing, notification: ''));
+    _update(
+      _model.copyWith(
+        syncState: SyncState.syncing,
+        notification: 'Preparing to sync...',
+      ),
+    );
 
     // Attempt a reconnect if disconnected
     if (!_model.ftp.isConnected) {

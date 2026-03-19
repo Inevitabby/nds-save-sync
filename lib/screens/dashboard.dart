@@ -161,9 +161,7 @@ class _DashboardState extends ConsumerState<Dashboard> {
                 ),
                 Expanded(
                   flex: 2,
-                  child: _NotificationsPanel(
-                    appState: appState,
-                  ),
+                  child: _NotificationsPanel(appState: appState),
                 ),
                 const Expanded(
                   flex: 1,
@@ -183,42 +181,57 @@ class _NotificationsPanel extends StatelessWidget {
 
   final AppModel appState;
 
-  bool get _hasNotification =>
-      appState.notification != null && appState.notification!.isNotEmpty;
+  bool get _hasContent =>
+      appState.syncProgress != null ||
+      (appState.notification != null && appState.notification!.isNotEmpty);
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
     final progress = appState.syncProgress;
 
+    if (!_hasContent) return const SizedBox.shrink();
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (progress != null) ...[
-            Text(
-              progress.phase == SyncPhase.archiving
-                  ? 'Archiving...'
-                  : _progressText(progress),
-              style: Theme.of(context).textTheme.bodySmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 6),
-            progress.phase == SyncPhase.archiving
-                ? const LinearProgressIndicator()
-                : TweenAnimationBuilder<double>(
-                    tween: Tween(end: progress.fraction),
-                    duration: const Duration(milliseconds: 400),
-                    builder: (_, value, __) => LinearProgressIndicator(value: value),
-                  ),
-          ] else if (_hasNotification)
-            Text(
-              appState.notification!,
-              style: Theme.of(context).textTheme.bodySmall,
-              textAlign: TextAlign.center,
-            ),
-        ],
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: cs.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (progress != null) ...[
+                Text(
+                  progress.phase == SyncPhase.archiving
+                      ? 'Archiving...'
+                      : _progressText(progress),
+                  style: tt.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 6),
+                progress.phase == SyncPhase.archiving
+                    ? const LinearProgressIndicator()
+                    : TweenAnimationBuilder<double>(
+                        tween: Tween(end: progress.fraction),
+                        duration: const Duration(milliseconds: 400),
+                        builder: (_, value, __) =>
+                            LinearProgressIndicator(value: value),
+                      ),
+              ] else
+                Text(
+                  appState.notification!,
+                  style: tt.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -226,7 +239,7 @@ class _NotificationsPanel extends StatelessWidget {
 
 String _progressText(SyncProgress progress) {
   final verb = switch (progress.phase) {
-    SyncPhase.downloading => 'Fetching from DS...',
+    SyncPhase.downloading => 'Fetching from NDS...',
     SyncPhase.archiving   => 'Archiving...',
   };
   return '$verb\n${progress.currentFile}';
