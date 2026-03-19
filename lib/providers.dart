@@ -87,7 +87,7 @@ class AppController extends AsyncNotifier<AppModel> {
   @override
   Future<AppModel> build() async {
     final persisted = await Persistence.load();
-    if (kDebugMode) return AppModel(ftp: FtpClient());
+    // if (kDebugMode) return AppModel(ftp: FtpClient());
     return AppModel(
       ftp: FtpClient(),
       lastIp: persisted.lastIp,

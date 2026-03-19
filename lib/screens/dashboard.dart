@@ -7,35 +7,9 @@ import 'package:nds_save_sync/providers.dart';
 import 'package:nds_save_sync/sync.dart';
 import 'package:nds_save_sync/widgets/sync_button.dart';
 
-// STATES
-// 
-// 1. Idle (Disconnected):
-//  - Condition: Initial state
-//  - Hero: "Connect to Device" (TODO wording)
-// 
-// 2. Connecting:
-//  - Hero: "Connecting to your DS..."
-// 
-// 3. Connected:
-//  - Condition: Connection established to DS.
-//  - Case A: First-Connection
-//    - Hero: Modal showing FTP directory browser, user finds and picks saveDir folder
-//  - Case B: Ready
-//    - Hero: "Tap to Sync" TODO Or just jump straight to syncing and save a tap?
-// 
-// 4. Syncing
-//  - Condition: Sync started
-//  - Hero: Some sort of live log/progress indicator. The *bulk* of time will be waiting on the crap link so this'll need to be good. (TODO Design this)
-// 
-// 5. Success:
-//  - Condition: Sync completed
-//  - Hero: TODO Some sort of success indicator and something telling the user to check their archive. i.e., "Swipe left to see saves" or something
-
 // OTHER LOCATIONS
-// - Left: Save Archive
-// - Right: Settings xor Debug (Version Information and Logs (TODO Plan this side))
-// 
-// TODO Alternatively, just a slide-up modal for Save Archive, I may forgo settings for simplicity's sake.
+// - Swipe Left: Save Archive
+// - Swipe Right: Settings xor Debug (Version Information and Logs (TODO Plan this side))
 
 class Dashboard extends ConsumerStatefulWidget {
   const Dashboard({super.key});
@@ -96,9 +70,10 @@ class _DashboardState extends ConsumerState<Dashboard> {
         if (kDebugMode) {
           controller.reset();
         }
+        controller.reset(); // TODO implement something here?
         break;
 
-      case SyncState.error: // TODO only for debugging
+      case SyncState.error: // TODO implement logging
         controller.reset();
         break;
     }
@@ -251,8 +226,8 @@ class _NotificationsPanel extends StatelessWidget {
 
 String _progressText(SyncProgress progress) {
   final verb = switch (progress.phase) {
-    SyncPhase.downloading => 'Downloading',
-    SyncPhase.archiving   => 'Archiving',
+    SyncPhase.downloading => 'Downloading...',
+    SyncPhase.archiving   => 'Archiving...',
   };
-  return '$verb ${progress.currentFile} [${progress.fileIndex} / ${progress.total}]';
+  return '$verb\n${progress.currentFile}';
 }
