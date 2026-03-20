@@ -81,7 +81,7 @@ class FtpClient {
 
       return entries;
     } catch (e) {
-      return [];
+      rethrow;
     }
   }
 

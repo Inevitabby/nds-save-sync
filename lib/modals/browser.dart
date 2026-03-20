@@ -27,12 +27,16 @@ class _BrowserState extends ConsumerState<Browser> {
 
   Future<void> _loadDir() async {
     setState(() => _loading = true);
-    final entries = await ref.read(appProvider).requireValue.ftp.list();
-    if (mounted) {
-      setState(() {
-        _files = entries;
-        _loading = false;
-      });
+    try {
+      final entries = await ref.read(appProvider).requireValue.ftp.list();
+      if (mounted) {
+        setState(() {
+          _files = entries;
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) Navigator.pop(context);
     }
   }
 
