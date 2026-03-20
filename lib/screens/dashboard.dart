@@ -230,11 +230,23 @@ class _NotificationsPanel extends StatelessWidget {
                 ] else
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 100),
-                    child: Text(
-                      appState.notification!,
+                    child: Column(
                       key: ValueKey(appState.notification),
-                      style: tt.bodySmall,
-                      textAlign: TextAlign.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (appState.syncState == SyncState.success)
+                          Text(
+                            'Swipe left to view archive',
+                            style: tt.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        Text(
+                          appState.notification!,
+                          style: tt.bodySmall,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ),
                   ),
               ],
