@@ -118,12 +118,16 @@ class _GameTileState extends State<_GameTile>
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _chevronTurns = Tween<double>(
-      end: 0.5,
-    ).animate(CurvedAnimation(
-      parent: _chevronController,
-      curve: Curves.easeInOut,
-    ));
+    _chevronTurns =
+        Tween<double>(
+          begin: 0,
+          end: 0.5,
+        ).animate(
+          CurvedAnimation(
+            parent: _chevronController,
+            curve: Curves.easeInOut,
+          ),
+        );
   }
 
   @override
