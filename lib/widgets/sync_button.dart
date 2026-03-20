@@ -125,32 +125,29 @@ class _SyncButtonState extends State<SyncButton>
   }
 }
 
-Color _color(ColorScheme cs, SyncState state) {
-  final isDark = cs.brightness == Brightness.dark;
-  return switch (state) {
-    SyncState.idle      => isDark ? Colors.blue[300]! : Colors.blue[700]!,
-    SyncState.connecting => cs.primary,
-    SyncState.connected => isDark ? Colors.blue[300]! : Colors.blue[700]!,
-    SyncState.syncing   => cs.primary,
-    SyncState.success   => isDark ? Colors.green[300]! : Colors.green[700]!,
-    SyncState.error     => cs.error,
-  };
-}
+Color _color(ColorScheme cs, SyncState state) => switch (state) {
+  SyncState.idle       => Colors.blue[300]!,
+  SyncState.connecting => cs.primary,
+  SyncState.connected  => Colors.blue[300]!,
+  SyncState.syncing    => cs.primary,
+  SyncState.success    => Colors.green[300]!,
+  SyncState.error      => cs.error,
+};
 
 IconData _icon(SyncState state) => switch (state) {
-  SyncState.idle      => Icons.power_settings_new,
+  SyncState.idle       => Icons.power_settings_new,
   SyncState.connecting => Icons.sync,
-  SyncState.connected => Icons.sync,
-  SyncState.syncing   => Icons.sync,
-  SyncState.success   => Icons.check_circle_outline,
-  SyncState.error     => Icons.sync_problem,
+  SyncState.connected  => Icons.sync,
+  SyncState.syncing    => Icons.sync,
+  SyncState.success    => Icons.check_circle_outline,
+  SyncState.error      => Icons.sync_problem,
 };
 
 String _label(SyncState state) => switch (state) {
-  SyncState.idle      => 'CONNECT',
+  SyncState.idle       => 'CONNECT',
   SyncState.connecting => 'CONNECTING',
-  SyncState.connected => 'TAP TO SYNC',
-  SyncState.syncing   => 'SYNCING',
-  SyncState.success   => 'SUCCESS',
-  SyncState.error     => 'TAP TO RETRY',
+  SyncState.connected  => 'TAP TO SYNC',
+  SyncState.syncing    => 'SYNCING',
+  SyncState.success    => 'SUCCESS',
+  SyncState.error      => 'TAP TO RETRY',
 };
