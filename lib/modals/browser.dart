@@ -40,12 +40,20 @@ class _BrowserState extends ConsumerState<Browser> {
     }
   }
 
+  bool _navigating = false;
+
   Future<void> _navigate(String dir) async {
-    final success = await ref.read(appProvider).requireValue.ftp.changeDir(dir);
-    if (success) {
-        final dir = await ref.read(appProvider).requireValue.ftp.currentDir();
-setState(() => _currentPath = dir);
-        await _loadDir();
+    if (_navigating) return;
+    _navigating = true;
+    try {
+      final success = await ref.read(appProvider).requireValue.ftp.changeDir(dir);
+      if (success) {
+          final dir = await ref.read(appProvider).requireValue.ftp.currentDir();
+  setState(() => _currentPath = dir);
+          await _loadDir();
+      }
+    } finally {
+      _navigating = false;
     }
   }
 

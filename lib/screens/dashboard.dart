@@ -19,7 +19,19 @@ class Dashboard extends ConsumerStatefulWidget {
 }
 
 class _DashboardState extends ConsumerState<Dashboard> {
+  bool _dialogOpen = false;
+
   Future<void> _onPressed(AppModel appState) async {
+    if (_dialogOpen) return;
+    _dialogOpen = true;
+    try {
+      await _onPressedInner(appState);
+    } finally {
+      _dialogOpen = false;
+    }
+  }
+
+  Future<void> _onPressedInner(AppModel appState) async {
     final controller = ref.read(appProvider.notifier);
 
     switch (appState.syncState) {
