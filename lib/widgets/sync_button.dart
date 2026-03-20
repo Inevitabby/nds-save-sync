@@ -135,11 +135,11 @@ Color _color(ColorScheme cs, SyncState state) => switch (state) {
 };
 
 IconData _icon(SyncState state) => switch (state) {
-  SyncState.idle       => Icons.power_settings_new,
+  SyncState.idle       => Icons.sync,
   SyncState.connecting => Icons.sync,
   SyncState.connected  => Icons.sync,
   SyncState.syncing    => Icons.sync,
-  SyncState.success    => Icons.check_circle_outline,
+  SyncState.success    => Icons.emoji_emotions,
   SyncState.error      => Icons.sync_problem,
 };
 
@@ -148,6 +148,6 @@ String _label(SyncState state) => switch (state) {
   SyncState.connecting => 'CONNECTING',
   SyncState.connected  => 'TAP TO SYNC',
   SyncState.syncing    => 'SYNCING',
-  SyncState.success    => 'SUCCESS',
+  SyncState.success    => 'SUCCESS!',
   SyncState.error      => 'TAP TO RETRY',
 };
