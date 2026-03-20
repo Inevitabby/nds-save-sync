@@ -112,6 +112,25 @@ class AppController extends AsyncNotifier<AppModel> {
 
     final success = await _model.ftp.connect(ip, port);
     if (success) {
+      // Sanity-check the connection before declaring success
+      try {
+        await _model.ftp.changeDir('/');
+        await _model.ftp.list();
+      } catch (e) {
+        await _model.ftp.disconnect();
+        _update(
+          // NOTE: The only way to reach this is to have a really unusual network topology
+          _model.copyWith(
+            syncState: SyncState.idle,
+            consecutiveConnectFailures: _model.consecutiveConnectFailures + 1,
+            notification:
+                "Connected to $ip but data channel failed. Check passive mode ports.",
+          ),
+        );
+        return false;
+      }
+
+      // Success
       _update(_model.copyWith(
         syncState: SyncState.connected,
         consecutiveConnectFailures: 0,

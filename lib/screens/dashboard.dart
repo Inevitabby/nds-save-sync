@@ -56,6 +56,10 @@ class _DashboardState extends ConsumerState<Dashboard> {
             child: Browser(),
           ),
         );
+        if (selectedPath == 'error') {
+          await _showIpDialog(appState, controller);
+          break;
+        }
         if (selectedPath == null) break;
         await controller.setSaveDir(selectedPath);
         await _syncWithArchiveGuard(
@@ -66,6 +70,7 @@ class _DashboardState extends ConsumerState<Dashboard> {
 
       case SyncState.syncing:
         break; // ignore
+
       case SyncState.success:
         if (kDebugMode) {
           controller.reset();

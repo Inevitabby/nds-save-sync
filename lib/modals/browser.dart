@@ -36,7 +36,7 @@ class _BrowserState extends ConsumerState<Browser> {
         });
       }
     } catch (e) {
-      if (mounted) Navigator.pop(context);
+      if (mounted) Navigator.pop(context, 'error');
     }
   }
 
