@@ -1,0 +1,9 @@
+# dart run flutter_native_splash:create
+flutter_native_splash:
+  color: "#1e1e2e"
+  ios: false
+  web: false
+  android_12:
+    color: "#1e1e2e"
+    # image: assets/TODO
+    # icon_background_color: "#89b4fa"
