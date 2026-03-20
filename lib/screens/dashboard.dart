@@ -196,40 +196,49 @@ class _NotificationsPanel extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
       child: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: cs.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (progress != null) ...[
-                Text(
+        child: AnimatedSize(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+          alignment: Alignment.topCenter,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: cs.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (progress != null) ...[
+                  Text(
+                    progress.phase == SyncPhase.archiving
+                        ? 'Archiving...'
+                        : _progressText(progress),
+                    style: tt.bodySmall,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 6),
                   progress.phase == SyncPhase.archiving
-                      ? 'Archiving...'
-                      : _progressText(progress),
-                  style: tt.bodySmall,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 6),
-                progress.phase == SyncPhase.archiving
-                    ? const LinearProgressIndicator()
-                    : TweenAnimationBuilder<double>(
-                        tween: Tween(end: progress.fraction),
-                        duration: const Duration(milliseconds: 400),
-                        builder: (_, value, __) =>
-                            LinearProgressIndicator(value: value),
-                      ),
-              ] else
-                Text(
-                  appState.notification!,
-                  style: tt.bodySmall,
-                  textAlign: TextAlign.center,
-                ),
-            ],
+                      ? const LinearProgressIndicator()
+                      : TweenAnimationBuilder<double>(
+                          tween: Tween(end: progress.fraction),
+                          duration: const Duration(milliseconds: 100),
+                          builder: (_, value, __) =>
+                              LinearProgressIndicator(value: value),
+                        ),
+                ] else
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 100),
+                    child: Text(
+                      appState.notification!,
+                      key: ValueKey(appState.notification),
+                      style: tt.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
