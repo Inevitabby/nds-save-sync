@@ -130,7 +130,7 @@ Color _color(ColorScheme cs, SyncState state) => switch (state) {
   SyncState.connecting => cs.primary,
   SyncState.connected  => Colors.blue[300]!,
   SyncState.syncing    => cs.primary,
-  SyncState.success    => Colors.green[300]!,
+  SyncState.success    => const Color(0xFFA6E3A1),
   SyncState.error      => cs.error,
 };
 
