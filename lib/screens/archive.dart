@@ -97,18 +97,47 @@ class Archive extends ConsumerWidget {
   }
 }
 
-class _GameTile extends StatelessWidget {
+class _GameTile extends StatefulWidget {
   const _GameTile({required this.group});
 
   final SaveGroup group;
 
   @override
+  State<_GameTile> createState() => _GameTileState();
+}
+
+class _GameTileState extends State<_GameTile>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _chevronController;
+  late final Animation<double> _chevronTurns;
+
+  @override
+  void initState() {
+    super.initState();
+    _chevronController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _chevronTurns = Tween<double>(
+      end: 0.5,
+    ).animate(CurvedAnimation(
+      parent: _chevronController,
+      curve: Curves.easeInOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _chevronController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final count = group.entries.length;
+    final count = widget.group.entries.length;
     final borderRadius = BorderRadius.circular(12);
-    // Borderless shape suppresses the divider lines ExpansionTile draws internally
     const tileBorder = RoundedRectangleBorder();
 
     return Card(
@@ -122,18 +151,25 @@ class _GameTile extends StatelessWidget {
         backgroundColor: cs.surfaceContainerHigh,
         shape: tileBorder,
         collapsedShape: tileBorder,
+        onExpansionChanged: (expanded) {
+          if (expanded) {
+            _chevronController.forward();
+          } else {
+            _chevronController.reverse();
+          }
+        },
         title: Text(
-          group.displayName,
+          widget.group.displayName,
           style: tt.titleMedium?.copyWith(
             letterSpacing: -0.1,
             fontWeight: FontWeight.w600,
           ),
         ),
         subtitle: Text(
-          group.entries.isNotEmpty &&
-                  SaveFilename.getTimestamp(group.entries.first) != null
-              ? 'Last backup ${timeago.format(SaveFilename.getTimestamp(group.entries.first)!)}'
-              : group.gameName,
+          widget.group.entries.isNotEmpty &&
+                  SaveFilename.getTimestamp(widget.group.entries.first) != null
+              ? 'Last backup ${timeago.format(SaveFilename.getTimestamp(widget.group.entries.first)!)}'
+              : widget.group.gameName,
           style: tt.bodySmall?.copyWith(
             color: cs.onSurfaceVariant.withValues(alpha: 0.9),
           ),
@@ -146,11 +182,14 @@ class _GameTile extends StatelessWidget {
               style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
             ),
             const SizedBox(width: 4),
-            const Icon(Icons.expand_more),
+            RotationTransition(
+              turns: _chevronTurns,
+              child: Icon(color: cs.onSurfaceVariant, Icons.expand_more),
+            ),
           ],
         ),
         children: [
-          _TimelineList(entries: group.entries),
+          _TimelineList(entries: widget.group.entries),
         ],
       ),
     );
@@ -198,22 +237,43 @@ class _TimelineEntry extends ConsumerWidget {
     final timestamp = SaveFilename.getTimestamp(filename);
     final dimColor = cs.onSurfaceVariant.withValues(alpha: 0.4);
 
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            width: 24,
-            child: Column(
-              children: [
-                Expanded(
-                  child: Center(
-                    child: isFirst
-                        ? const SizedBox.shrink()
-                        : Container(width: 2, color: dimColor),
-                  ),
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Row(
+            children: [
+              SizedBox(
+                width: 24,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Center(
+                        child: isFirst
+                            ? const SizedBox.shrink()
+                            : Container(width: 2, color: dimColor),
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Expanded(
+                      child: Center(
+                        child: isLast
+                            ? const SizedBox.shrink()
+                            : Container(width: 2, color: dimColor),
+                      ),
+                    ),
+                  ],
                 ),
-                Container(
+              ),
+            ],
+          ),
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 24,
+              child: Center(
+                child: Container(
                   width: 10,
                   height: 10,
                   decoration: BoxDecoration(
@@ -221,71 +281,83 @@ class _TimelineEntry extends ConsumerWidget {
                     color: dimColor,
                   ),
                 ),
-                Expanded(
-                  child: Center(
-                    child: isLast
-                        ? const SizedBox.shrink()
-                        : Container(width: 2, color: dimColor),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Material(
-                color: cs.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
-                child: InkWell(
+            const SizedBox(width: 12),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Material(
+                  color: cs.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(8),
-                  onTap: () async {
-                    final archiveUri = ref.read(appProvider).value?.archiveUri;
-                    if (archiveUri == null) return;
-                    final bytes = await SafFolderPicker.readFile(
-                      archiveUri: archiveUri,
-                      filename: filename,
-                      subdir: archiveSubdir,
-                    );
-                    if (bytes == null) return;
-                    final tmp = await getTemporaryDirectory();
-                    final file = XFile('${tmp.path}/$filename');
-                    await File(file.path).writeAsBytes(bytes);
-                    await SharePlus.instance.share(ShareParams(files: [file]));
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          timestamp != null ? timeago.format(timestamp) : '???',
-                          style: tt.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          filename,
-                          style: GoogleFonts.jetBrainsMono(
-                            textStyle: tt.bodySmall?.copyWith(
-                              color: cs.onSurfaceVariant,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () async {
+                      final archiveUri = ref
+                          .read(appProvider)
+                          .value
+                          ?.archiveUri;
+                      if (archiveUri == null) return;
+                      final bytes = await SafFolderPicker.readFile(
+                        archiveUri: archiveUri,
+                        filename: filename,
+                        subdir: archiveSubdir,
+                      );
+                      if (bytes == null) return;
+                      final tmp = await getTemporaryDirectory();
+                      final file = XFile('${tmp.path}/$filename');
+                      await File(file.path).writeAsBytes(bytes);
+                      await SharePlus.instance.share(
+                        ShareParams(files: [file]),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  timestamp != null
+                                      ? timeago.format(timestamp)
+                                      : '???',
+                                  style: tt.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  filename.characters.join('\u200B'), // duct-taped character wrapping
+                                  style: GoogleFonts.jetBrainsMono(
+                                    textStyle: tt.bodySmall?.copyWith(
+                                      color: cs.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.adaptive.share,
+                            size: 18,
+                            color: cs.onSurfaceVariant.withValues(alpha: 0.8), // bait and switch
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
 }
