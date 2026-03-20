@@ -239,7 +239,7 @@ class _TimelineEntry extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final timestamp = SaveFilename.getTimestamp(filename);
-    final dimColor = cs.onSurfaceVariant.withValues(alpha: 0.4);
+    final dimColor = cs.onSurfaceVariant.withValues(alpha: 0.7);
 
     return Stack(
       children: [
@@ -339,7 +339,7 @@ class _TimelineEntry extends ConsumerWidget {
                                   filename.characters.join('\u200B'), // duct-taped character wrapping
                                   style: GoogleFonts.jetBrainsMono(
                                     textStyle: tt.bodySmall?.copyWith(
-                                      color: cs.onSurfaceVariant,
+                                      // color: cs.,
                                     ),
                                   ),
                                 ),
