@@ -22,12 +22,14 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: 'NDS Save Sync',
       theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: const Color(0xFF1e1e2e),
         textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
         colorScheme:
             ColorScheme.fromSeed(
               seedColor: const Color(0xFF89b4fa),
               brightness: Brightness.dark,
             ).copyWith(
+              primary: const Color(0xFF89b4fa),
               surface: const Color(0xFF1e1e2e),
               surfaceContainerLow: const Color(0xFF313244),
               surfaceContainerHigh: const Color(0xFF45475a),
