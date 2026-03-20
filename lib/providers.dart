@@ -162,25 +162,6 @@ class AppController extends AsyncNotifier<AppModel> {
       ),
     );
 
-    // Attempt a reconnect if disconnected
-    if (!_model.ftp.isConnected) {
-      if (_model.lastIp == null || _model.lastPort == null) return;
-      final reconnected = await _model.ftp.connect(
-        _model.lastIp!,
-        _model.lastPort!,
-      );
-      if (!reconnected) {
-        _update(
-          _model.copyWith(
-            syncState: SyncState.error,
-            notification: 'Lost connection to NDS.',
-          ),
-        );
-        return;
-      }
-    }
-
-    // Temporary staging dir
     final tempBase = await getTemporaryDirectory();
     final stagingDir = Directory(
       '${tempBase.path}/nds_save_sync_staging_${DateTime.now().millisecondsSinceEpoch}',
@@ -237,10 +218,14 @@ class AppController extends AsyncNotifier<AppModel> {
         ),
       );
     } catch (e) {
-      _update(_model.clearProgress().copyWith(
-        syncState: SyncState.error,
-        notification: 'Sync failed.',
-      ));
+      _update(
+        _model.clearProgress().copyWith(
+          syncState: SyncState.error,
+          notification: e is StateError
+              ? 'Lost connection to NDS.'
+              : 'Sync failed.',
+        ),
+      );
     } finally {
       try {
         if (await stagingDir.exists()) await stagingDir.delete(recursive: true);

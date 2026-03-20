@@ -5,14 +5,18 @@ import 'package:path/path.dart' as p;
 
 class FtpClient {
   FTPConnect? _client;
+  String? _lastIp;
+  int? _lastPort;
 
   bool get isConnected => _client != null;
-  
+
   Future<bool> connect(String ip, int port) async {
     final client = FTPConnect(timeout: 10, ip, port: port);
     try {
       await client.connect();
       _client = client;
+      _lastIp = ip;
+      _lastPort = port;
       return true;
     } catch (e) {
       return false;
@@ -22,12 +26,21 @@ class FtpClient {
   Future<void> disconnect() async {
     try {
       await _client?.disconnect();
-    } catch (_) {}
+    } catch (_) {} // best-effort
     _client = null;
   }
 
+  // Reconnects once if the socket has been dropped. Throws if it fails.
+  Future<void> _ensureConnected() async {
+    if (_client != null) return;
+    if (_lastIp == null || _lastPort == null)
+      throw StateError('Not connected.');
+    final ok = await connect(_lastIp!, _lastPort!);
+    if (!ok) throw StateError('Reconnect failed.');
+  }
+
   Future<String> currentDir() async {
-    if (_client == null) return '';
+    await _ensureConnected();
     try {
       return await _client!.currentDirectory();
     } catch (e) {
@@ -36,7 +49,7 @@ class FtpClient {
   }
 
   Future<bool> changeDir(String path) async {
-    if (_client == null) return false;
+    await _ensureConnected();
     try {
       return await _client!.changeDirectory(path);
     } catch (e) {
@@ -46,24 +59,26 @@ class FtpClient {
 
   // Lists contents of CWD (directories first, then files)
   Future<List<FTPEntry>> list() async {
-    if (_client == null) return [];
+    await _ensureConnected();
     try {
       var entries = await _client!.listDirectoryContent();
- 
+
       entries = entries
-          .where((e) => e.type == FTPEntryType.dir || e.type == FTPEntryType.file)
+          .where(
+            (e) => e.type == FTPEntryType.dir || e.type == FTPEntryType.file,
+          )
           .toList();
- 
+
       // TODO: Is the server returning the CWD path as an entry because of LIST/MLSD behaviour?
       if (entries.isNotEmpty && entries.first.name == await currentDir()) {
         entries = entries.sublist(1);
       }
- 
+
       entries.sort((a, b) {
         if (a.type != b.type) return a.type == FTPEntryType.dir ? -1 : 1;
         return a.name.toLowerCase().compareTo(b.name.toLowerCase());
       });
- 
+
       return entries;
     } catch (e) {
       return [];
@@ -78,7 +93,7 @@ class FtpClient {
     required Directory stagingDir,
     void Function(String filename, int done, int total)? onProgress,
   }) async {
-    if (_client == null) throw StateError('Not connected.');
+    await _ensureConnected();
 
     await _client!.changeDirectory(remoteDir);
     final saves = (await list())
@@ -129,7 +144,7 @@ class DownloadResult {
     required this.files,
     required this.failures,
   });
- 
+
   final Map<String, File> files;
   final List<String> failures;
 }
