@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -87,7 +88,7 @@ class AppController extends AsyncNotifier<AppModel> {
   @override
   Future<AppModel> build() async {
     final persisted = await Persistence.load();
-    // if (kDebugMode) return AppModel(ftp: FtpClient());
+    if (kDebugMode) return AppModel(ftp: FtpClient(), notification: 'Ready to connect to NDS.');
     return AppModel(
       ftp: FtpClient(),
       lastIp: persisted.lastIp,
@@ -253,7 +254,7 @@ class AppController extends AsyncNotifier<AppModel> {
   }
 
   Future<void> reset() async {
-    await _model.ftp.disconnect();
+    unawaited(_model.ftp.disconnect());
     ref.invalidateSelf();
   }
 }
