@@ -175,7 +175,7 @@ class _GameTileState extends State<_GameTile>
               ? 'Last backup ${timeago.format(SaveFilename.getTimestamp(widget.group.entries.first)!)}'
               : widget.group.gameName,
           style: tt.bodySmall?.copyWith(
-            color: cs.onSurfaceVariant.withValues(alpha: 0.9),
+            color: cs.onSurfaceVariant,
           ),
         ),
         trailing: Row(
@@ -239,7 +239,6 @@ class _TimelineEntry extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final timestamp = SaveFilename.getTimestamp(filename);
-    final dimColor = cs.onSurfaceVariant.withValues(alpha: 0.7);
 
     return Stack(
       children: [
@@ -254,7 +253,7 @@ class _TimelineEntry extends ConsumerWidget {
                       child: Center(
                         child: isFirst
                             ? const SizedBox.shrink()
-                            : Container(width: 2, color: dimColor),
+                            : Container(width: 2, color: cs.onSurfaceVariant),
                       ),
                     ),
                     const SizedBox(height: 5),
@@ -262,7 +261,7 @@ class _TimelineEntry extends ConsumerWidget {
                       child: Center(
                         child: isLast
                             ? const SizedBox.shrink()
-                            : Container(width: 2, color: dimColor),
+                            : Container(width: 2, color: cs.onSurfaceVariant),
                       ),
                     ),
                   ],
@@ -282,7 +281,7 @@ class _TimelineEntry extends ConsumerWidget {
                   height: 10,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: dimColor,
+                    color: cs.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -336,21 +335,21 @@ class _TimelineEntry extends ConsumerWidget {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  filename.characters.join('\u200B'), // duct-taped character wrapping
+                                  // duct-taped character wrapping
+                                  filename.characters.join('\u200B'), 
                                   style: GoogleFonts.jetBrainsMono(
-                                    textStyle: tt.bodySmall?.copyWith(
-                                      // color: cs.,
-                                    ),
+                                    textStyle: tt.bodySmall,
                                   ),
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(width: 8),
+                          // bait and switch (tempt the user to click)
                           Icon(
                             Icons.adaptive.share,
                             size: 18,
-                            color: cs.onSurfaceVariant.withValues(alpha: 0.8), // bait and switch
+                            color: cs.onSurfaceVariant.withValues(alpha: 0.9),
                           ),
                         ],
                       ),
