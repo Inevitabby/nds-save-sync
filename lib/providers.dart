@@ -221,6 +221,10 @@ class AppController extends AsyncNotifier<AppModel> {
         },
       );
 
+      if (downloadResult.aborted) {
+        throw StateError('Lost connection to NDS.');
+      }
+
       debugPrint('[AppController.sync] Download complete: ${downloadResult.files.length} downloaded, ${downloadResult.failures.length} failed');
       if (downloadResult.failures.isNotEmpty) {
         debugPrint('[AppController.sync] Download failures: ${downloadResult.failures}');

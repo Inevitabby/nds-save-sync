@@ -159,6 +159,8 @@ class FtpClient {
     final downloaded = <String, File>{};
     final failures = <String>[];
     var done = 0;
+    var consecutiveFailures = 0;
+    const maxConsecutiveFailures = 2;
 
     for (final entry in saves) {
       final localFile = File(p.join(stagingDir.path, entry.name));
@@ -182,12 +184,20 @@ class FtpClient {
 
       done++;
       if (success) {
+        consecutiveFailures = 0;
         downloaded[entry.name] = localFile;
         if (done < saves.length) {
           await Future<void>.delayed(_interFileDelay);
         }
       } else {
+        consecutiveFailures++;
         failures.add(entry.name);
+        if (consecutiveFailures >= maxConsecutiveFailures) {
+          for (final remaining in saves.skip(done)) {
+            failures.add(remaining.name);
+          }
+          return DownloadResult(files: downloaded, failures: failures, aborted: true);
+        }
       }
     }
 
@@ -199,8 +209,10 @@ class DownloadResult {
   const DownloadResult({
     required this.files,
     required this.failures,
+    this.aborted = false,
   });
 
   final Map<String, File> files;
   final List<String> failures;
+  final bool aborted;
 }
