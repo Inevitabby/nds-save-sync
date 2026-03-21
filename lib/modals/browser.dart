@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ftpconnect/ftpconnect.dart';
@@ -20,7 +21,7 @@ class _BrowserState extends ConsumerState<Browser> {
   @override
   void initState() {
     super.initState();
-    _loadDir();
+    unawaited(_loadDir());
   }
 
   int get _saveCount => _files.where((f) => SaveFilename.isSave(f.name)).length;
@@ -46,12 +47,16 @@ class _BrowserState extends ConsumerState<Browser> {
   Future<void> _navigate(String dir) async {
     if (_navigating) return;
     _navigating = true;
+    debugPrint('[Browser._navigate] Navigating to "$dir"');
     try {
       final success = await ref.read(appProvider).requireValue.ftp.changeDir(dir);
       if (success) {
-          final dir = await ref.read(appProvider).requireValue.ftp.currentDir();
-  setState(() => _currentPath = dir);
-          await _loadDir();
+        final path = await ref.read(appProvider).requireValue.ftp.currentDir();
+        debugPrint('[Browser._navigate] Now at "$path"');
+        setState(() => _currentPath = path);
+        await _loadDir();
+      } else {
+        debugPrint('[Browser._navigate] changeDir("$dir") returned false');
       }
     } finally {
       _navigating = false;

@@ -63,8 +63,9 @@ class SaveFilename {
     if (_regions.containsAll(parts)) return true;
     if (_languages.containsAll(parts)) return true;
     if (_keywords.contains(inner.trim().toLowerCase())) return true;
-    if (inner.startsWith('Rev ') && int.tryParse(inner.substring(4)) != null)
+    if (inner.startsWith('Rev ') && int.tryParse(inner.substring(4)) != null) {
       return true;
+    }
     return false;
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -159,9 +160,9 @@ class _GameTileState extends State<_GameTile>
         collapsedShape: tileBorder,
         onExpansionChanged: (expanded) {
           if (expanded) {
-            _chevronController.forward();
+            unawaited(_chevronController.forward());
           } else {
-            _chevronController.reverse();
+            unawaited(_chevronController.reverse());
           }
         },
         title: Text(
@@ -273,7 +274,6 @@ class _TimelineEntry extends ConsumerWidget {
           ),
         ),
         Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(
               width: 24,

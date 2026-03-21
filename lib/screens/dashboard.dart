@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -62,6 +63,7 @@ class _DashboardState extends ConsumerState<Dashboard> {
         }
         // First connection: pick the remote save folder
         await appState.ftp.changeDir('/');
+        if (!mounted) return;
         final selectedPath = await showDialog<String>(
           context: context,
           builder: (_) => const Dialog(
@@ -86,13 +88,13 @@ class _DashboardState extends ConsumerState<Dashboard> {
 
       case SyncState.success:
         if (kDebugMode) {
-          controller.reset();
+          unawaited(controller.reset());
         }
-        controller.reset(); // TODO implement something here?
+        unawaited(controller.reset()); // TODO implement something else here?
         break;
 
       case SyncState.error: // TODO implement logging
-        controller.reset();
+        unawaited(controller.reset());
         break;
     }
   }
@@ -111,8 +113,8 @@ class _DashboardState extends ConsumerState<Dashboard> {
         ),
       ),
     );
-    if (result != null) {
-      controller.connect(result['ip'], result['port']);
+    if (result != null) { // TODO this check is broken (if no ip still passes)
+      unawaited(controller.connect(result['ip'] as String, result['port'] as int));
     }
   }
 
@@ -148,7 +150,7 @@ class _DashboardState extends ConsumerState<Dashboard> {
     }
     await WakelockPlus.enable();
     try {
-      controller.sync();
+      await controller.sync();
     } finally {
       await WakelockPlus.disable();
     }
@@ -187,7 +189,6 @@ class _DashboardState extends ConsumerState<Dashboard> {
                   child: _NotificationsPanel(appState: appState),
                 ),
                 const Expanded(
-                  flex: 1,
                   child: SizedBox.shrink(),
                 ),
               ],
@@ -242,14 +243,15 @@ class _NotificationsPanel extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 6),
-                  progress.phase == SyncPhase.archiving
-                      ? const LinearProgressIndicator()
-                      : TweenAnimationBuilder<double>(
-                          tween: Tween(end: progress.fraction),
-                          duration: const Duration(milliseconds: 100),
-                          builder: (_, value, __) =>
-                              LinearProgressIndicator(value: value),
-                        ),
+                  if (progress.phase == SyncPhase.archiving)
+                    const LinearProgressIndicator()
+                  else
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(end: progress.fraction),
+                      duration: const Duration(milliseconds: 100),
+                      builder: (_, value, _) =>
+                          LinearProgressIndicator(value: value),
+                    ),
                 ] else
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 100),

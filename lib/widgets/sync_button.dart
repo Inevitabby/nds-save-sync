@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:nds_save_sync/providers.dart';
 
@@ -39,14 +40,14 @@ class _SyncButtonState extends State<SyncButton>
   @override
   void initState() {
     super.initState();
-    if (_busy) _spin.repeat();
+    if (_busy) unawaited(_spin.repeat());
   }
 
   @override
   void didUpdateWidget(SyncButton old) {
     super.didUpdateWidget(old);
     if (_busy && !_spin.isAnimating) {
-      _spin.repeat();
+      unawaited(_spin.repeat());
     } else if (!_busy && _spin.isAnimating) {
       _spin.stop();
       _spin.reset();
@@ -62,7 +63,7 @@ class _SyncButtonState extends State<SyncButton>
 
   Future<void> _onTapDown(_) async {
     if (_busy) return;
-    _press.forward();
+    unawaited(_press.forward());
   }
 
   Future<void> _onTapUp(_) async {

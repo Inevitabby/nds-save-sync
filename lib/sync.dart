@@ -1,6 +1,5 @@
 import 'dart:io';
-import 'dart:typed_data';
- 
+import 'package:flutter/foundation.dart';
 import 'package:nds_save_sync/constants.dart';
 import 'package:nds_save_sync/saf.dart';
 import 'package:nds_save_sync/util/save_filename.dart';

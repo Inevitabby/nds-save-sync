@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -56,7 +57,7 @@ class _AppShellState extends State<AppShell> {
   void initState() {
     super.initState();
     _controller.addListener(() => setState(() {}));
-    _onboardingCheck();
+    unawaited(_onboardingCheck());
   }
 
   Widget _dots() {
@@ -64,7 +65,7 @@ class _AppShellState extends State<AppShell> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [0, 1].map((i) {
-        final opacity = 1.0 - ((page - i).abs()).clamp(0.0, 0.7);
+        final opacity = 1.0 - (page - i).abs().clamp(0.0, 0.7);
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 3),
           width: 8,

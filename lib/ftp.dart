@@ -125,17 +125,19 @@ class FtpClient {
       }
     });
 
-    _client!.downloadFile(name, dest, onProgress: (received, total, _) {
-      lastProgress = DateTime.now();
-    }).then((_) {
-      watchdog.cancel();
-      if (!completer.isCompleted) completer.complete();
-    }).catchError((Object e) {
-      debugPrint('[FtpClient._downloadWithStallDetection] Error downloading "$name": $e');
-      watchdog.cancel();
-      _client = null;
-      if (!completer.isCompleted) completer.completeError(e);
-    });
+    unawaited(
+      _client!.downloadFile(name, dest, onProgress: (received, total, _) {
+        lastProgress = DateTime.now();
+      }).then((_) {
+        watchdog.cancel();
+        if (!completer.isCompleted) completer.complete();
+      }).catchError((Object e) {
+        debugPrint('[FtpClient._downloadWithStallDetection] Error downloading "$name": $e');
+        watchdog.cancel();
+        _client = null;
+        if (!completer.isCompleted) completer.completeError(e);
+      })
+    );
 
     return completer.future;
   }
