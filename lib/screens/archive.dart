@@ -31,6 +31,8 @@ final FutureProvider<List<SaveGroup>> archiveProvider =
         subdir: archiveSubdir,
       );
 
+      debugPrint('[archiveProvider] Found ${files.length} archived files');
+
       final Map<String, List<String>> grouped = {};
       for (final filename in files) {
         grouped
@@ -300,13 +302,20 @@ class _TimelineEntry extends ConsumerWidget {
                           .read(appProvider)
                           .value
                           ?.archiveUri;
-                      if (archiveUri == null) return;
+                      if (archiveUri == null) {
+                        debugPrint('[_TimelineEntry.onTap] No archive URI set, cannot share "$filename"');
+                        return;
+                      }
                       final bytes = await SafFolderPicker.readFile(
                         archiveUri: archiveUri,
                         filename: filename,
                         subdir: archiveSubdir,
                       );
-                      if (bytes == null) return;
+                      if (bytes == null) {
+                        debugPrint('[_TimelineEntry.onTap] Failed to read "$filename" from archive');
+                        return;
+                      }
+                      debugPrint('[_TimelineEntry.onTap] Sharing "$filename" (${bytes.length} bytes)');
                       final tmp = await getTemporaryDirectory();
                       final file = XFile('${tmp.path}/$filename');
                       await File(file.path).writeAsBytes(bytes);

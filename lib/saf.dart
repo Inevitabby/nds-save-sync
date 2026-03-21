@@ -7,7 +7,8 @@ class SafFolderPicker {
   static Future<String?> pickFolder() async {
     try {
       return await _channel.invokeMethod<String>('pickFolder');
-    } on PlatformException catch (_) {
+    } on PlatformException catch (e) {
+      debugPrint('[SafFolderPicker.pickFolder] Error: $e');
       return null;
     }
   }
@@ -27,7 +28,8 @@ class SafFolderPicker {
         'subdir': ?subdir,
       });
       return result ?? false;
-    } on PlatformException catch (_) {
+    } on PlatformException catch (e) {
+      debugPrint('[SafFolderPicker.writeFile] Error writing "$filename": $e');
       return false;
     }
   }
@@ -46,6 +48,7 @@ class SafFolderPicker {
       });
     } on PlatformException catch (e) {
       if (e.code == 'FILE_NOT_FOUND') return null;
+      debugPrint('[SafFolderPicker.readFile] Error reading "$filename": $e');
       return null;
     }
   }
@@ -61,7 +64,8 @@ class SafFolderPicker {
         'subdir': ?subdir,
       });
       return result?.cast<String>() ?? [];
-    } on PlatformException catch (_) {
+    } on PlatformException catch (e) {
+      debugPrint('[SafFolderPicker.listFiles] Error listing files: $e');
       return [];
     }
   }

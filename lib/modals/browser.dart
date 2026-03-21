@@ -36,6 +36,7 @@ class _BrowserState extends ConsumerState<Browser> {
         });
       }
     } catch (e) {
+      debugPrint('[Browser._loadDir] Error loading directory "$_currentPath": $e');
       if (mounted) Navigator.pop(context, 'error');
     }
   }

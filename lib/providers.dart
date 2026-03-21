@@ -88,7 +88,13 @@ class AppController extends AsyncNotifier<AppModel> {
   @override
   Future<AppModel> build() async {
     final persisted = await Persistence.load();
-    if (kDebugMode) return AppModel(ftp: FtpClient(), notification: 'Ready to connect to NDS.');
+    debugPrint('[AppController.build] Loaded persisted state: ip=${persisted.lastIp}, port=${persisted.lastPort}, saveDir=${persisted.saveDir}');
+    if (kDebugMode) {
+      return AppModel(
+        ftp: FtpClient(),
+        notification: 'Ready to connect to NDS.',
+      );
+    }
     return AppModel(
       ftp: FtpClient(),
       lastIp: persisted.lastIp,
@@ -104,6 +110,7 @@ class AppController extends AsyncNotifier<AppModel> {
   void _update(AppModel next) => state = AsyncValue.data(next);
 
   Future<bool> connect(String ip, int port) async {
+    debugPrint('[AppController.connect] Connecting to $ip:$port');
     _update(
       _model.copyWith(
         syncState: SyncState.connecting,
@@ -118,20 +125,20 @@ class AppController extends AsyncNotifier<AppModel> {
         await _model.ftp.changeDir('/');
         await _model.ftp.list();
       } catch (e) {
+        debugPrint('[AppController.connect] Data channel sanity check failed for $ip: $e');
         await _model.ftp.disconnect();
         _update(
           // NOTE: The only way to reach this is to have a really unusual network topology
           _model.copyWith(
             syncState: SyncState.idle,
             consecutiveConnectFailures: _model.consecutiveConnectFailures + 1,
-            notification:
-                "Connected to $ip but data channel failed. Check passive mode ports.",
+            notification: 'Connected to $ip but data channel failed. Check passive mode ports.',
           ),
         );
         return false;
       }
 
-      // Success
+      debugPrint('[AppController.connect] Successfully connected to $ip:$port');
       _update(_model.copyWith(
         syncState: SyncState.connected,
         consecutiveConnectFailures: 0,
@@ -142,6 +149,7 @@ class AppController extends AsyncNotifier<AppModel> {
       await Persistence.saveLastIp(ip);
       await Persistence.saveLastPort(port);
     } else {
+      debugPrint('[AppController.connect] Failed to connect to $ip:$port (failure #${_model.consecutiveConnectFailures + 1})');
       _update(_model.copyWith(
         syncState: SyncState.idle,
         consecutiveConnectFailures: _model.consecutiveConnectFailures + 1,
@@ -153,17 +161,21 @@ class AppController extends AsyncNotifier<AppModel> {
 
   // TODO Perhaps calling all the NDS stuff "remoteX" would be better...
   Future<void> setSaveDir(String path) async {
+    debugPrint('[AppController.setSaveDir] Setting save dir to "$path"');
     _update(_model.copyWith(saveDir: path));
     await Persistence.saveSaveDir(path);
   }
 
   // Returns the picked URI, or null if the user cancelled.
   Future<String?> pickArchiveUri() async {
+    debugPrint('[AppController.pickArchiveUri] Opening folder picker');
     final uri = await SafFolderPicker.pickFolder();
     if (uri != null) {
+      debugPrint('[AppController.pickArchiveUri] Archive URI set to $uri');
       _update(_model.copyWith(archiveUri: uri, notification: ''));
       await Persistence.saveArchiveUri(uri);
     } else {
+      debugPrint('[AppController.pickArchiveUri] User cancelled folder selection');
       _update(_model.copyWith(notification: 'User cancelled folder selection.'));
     }
     return uri;
@@ -175,6 +187,7 @@ class AppController extends AsyncNotifier<AppModel> {
     if (_model.saveDir == null) return;
     if (_model.archiveUri == null) return;
 
+    debugPrint('[AppController.sync] Starting sync from "${_model.saveDir}"');
     _update(
       _model.copyWith(
         syncState: SyncState.syncing,
@@ -187,6 +200,7 @@ class AppController extends AsyncNotifier<AppModel> {
       '${tempBase.path}/nds_save_sync_staging_${DateTime.now().millisecondsSinceEpoch}',
     );
     await stagingDir.create(recursive: true);
+    debugPrint('[AppController.sync] Staging dir: ${stagingDir.path}');
 
     try {
       // 1. Download to staging
@@ -194,6 +208,7 @@ class AppController extends AsyncNotifier<AppModel> {
         remoteDir: _model.saveDir!,
         stagingDir: stagingDir,
         onProgress: (filename, done, total) {
+          debugPrint('[AppController.sync] Downloading $filename ($done/$total)');
           _update(
             _model.copyWith(
               syncProgress: SyncProgress(
@@ -206,11 +221,17 @@ class AppController extends AsyncNotifier<AppModel> {
         },
       );
 
+      debugPrint('[AppController.sync] Download complete: ${downloadResult.files.length} downloaded, ${downloadResult.failures.length} failed');
+      if (downloadResult.failures.isNotEmpty) {
+        debugPrint('[AppController.sync] Download failures: ${downloadResult.failures}');
+      }
+
       // 2. Compare against latest and archive changed files
       final syncResult = await syncToArchive(
         stagedFiles: downloadResult.files,
         archiveUri: _model.archiveUri!,
         onProgress: (filename, done, total) {
+          debugPrint('[AppController.sync] Archiving $filename ($done/$total)');
           _update(
             _model.copyWith(
               syncProgress: SyncProgress(
@@ -230,6 +251,8 @@ class AppController extends AsyncNotifier<AppModel> {
         failures: [...downloadResult.failures, ...syncResult.failures],
       );
 
+      debugPrint('[AppController.sync] Sync complete: ${combined.changed.length} changed, ${combined.unchanged.length} unchanged, ${combined.failures.length} failures');
+
       _update(
         _model.clearProgress().copyWith(
           syncState: SyncState.success,
@@ -238,6 +261,7 @@ class AppController extends AsyncNotifier<AppModel> {
         ),
       );
     } catch (e) {
+      debugPrint('[AppController.sync] Sync failed: $e');
       _update(
         _model.clearProgress().copyWith(
           syncState: SyncState.error,
@@ -249,11 +273,14 @@ class AppController extends AsyncNotifier<AppModel> {
     } finally {
       try {
         if (await stagingDir.exists()) await stagingDir.delete(recursive: true);
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[AppController.sync] Failed to clean up staging dir: $e');
+      }
     }
   }
 
   Future<void> reset() async {
+    debugPrint('[AppController.reset] Resetting state');
     unawaited(_model.ftp.disconnect());
     ref.invalidateSelf();
   }

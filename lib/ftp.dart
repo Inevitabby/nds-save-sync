@@ -171,6 +171,7 @@ class FtpClient {
           success = true;
           break;
         } catch (e) {
+          debugPrint('[FtpClient.downloadSaves] Attempt $attempt/$_maxRetries failed for "${entry.name}": $e');
           if (await localFile.exists()) await localFile.delete();
           if (attempt == _maxRetries) break;
           await Future<void>.delayed(_retryDelay);

@@ -75,6 +75,7 @@ Future<SyncResult> syncToArchive({
       );
  
       if (latestBytes != null && _cmp(stagedBytes, latestBytes)) {
+        debugPrint('[syncToArchive] "$filename" unchanged, skipping');
         unchanged.add(filename);
         done++;
         onProgress?.call(filename, done, total);
@@ -95,11 +96,14 @@ Future<SyncResult> syncToArchive({
       );
  
       if (archiveOk && latestOk) {
+        debugPrint('[syncToArchive] "$filename" archived successfully');
         changed.add(filename);
       } else {
+        debugPrint('[syncToArchive] "$filename" write failed (archiveOk=$archiveOk, latestOk=$latestOk)');
         failures.add(filename);
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[syncToArchive] "$filename" threw an error: $e');
       failures.add(filename);
     }
  
@@ -107,6 +111,7 @@ Future<SyncResult> syncToArchive({
     onProgress?.call(filename, done, total);
   }
  
+  debugPrint('[syncToArchive] Done: ${changed.length} changed, ${unchanged.length} unchanged, ${failures.length} failures');
   return SyncResult(
     changed: changed,
     unchanged: unchanged,
