@@ -111,7 +111,9 @@ class _AppShellState extends State<AppShell> {
           bottom: 24,
           left: 0,
           right: 0,
-          child: _dots(),
+          child: SafeArea(
+            child: _dots(),
+          ),
         ),
       ],
     );
