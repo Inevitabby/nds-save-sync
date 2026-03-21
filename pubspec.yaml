@@ -48,6 +48,7 @@ dependencies:
   google_fonts: ^8.0.2
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.7
+  wakelock_plus: ^1.5.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

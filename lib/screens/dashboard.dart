@@ -6,6 +6,7 @@ import 'package:nds_save_sync/modals/ip_entry.dart';
 import 'package:nds_save_sync/providers.dart';
 import 'package:nds_save_sync/sync.dart';
 import 'package:nds_save_sync/widgets/sync_button.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 // OTHER LOCATIONS
 // - Swipe Left: Save Archive
@@ -145,7 +146,12 @@ class _DashboardState extends ConsumerState<Dashboard> {
       final uri = await controller.pickArchiveUri();
       if (uri == null) return;
     }
-    controller.sync();
+    await WakelockPlus.enable();
+    try {
+      controller.sync();
+    } finally {
+      await WakelockPlus.disable();
+    }
   }
 
   @override
