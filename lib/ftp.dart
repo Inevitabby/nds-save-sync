@@ -106,10 +106,10 @@ class FtpClient {
     throw StateError('unreachable');
   }
 
-  static const _maxRetries = 7;
-  static const _retryDelay = Duration(seconds: 7);
+  static const _maxRetries = 3;
+  static const _retryDelay = Duration(seconds: 3);
   static const _interFileDelay = Duration(seconds: 1);
-  static const _stallThreshold = 7;
+  static const _stallThreshold = 3;
 
   Future<void> _downloadWithStallDetection(String name, File dest) async {
     final completer = Completer<void>();
