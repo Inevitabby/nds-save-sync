@@ -39,7 +39,6 @@ class FtpClient {
   Future<void> _ensureConnected() async {
     if (_client != null) return;
     if (_lastIp == null || _lastPort == null) throw StateError('Not connected.');
-    await Future<void>.delayed(const Duration(seconds: 3));
     final ok = await connect(_lastIp!, _lastPort!);
     if (!ok) throw StateError('Reconnect failed.');
   }
@@ -106,10 +105,10 @@ class FtpClient {
     throw StateError('unreachable');
   }
 
-  static const _maxRetries = 6;
-  static const _retryDelay = Duration(seconds: 7);
-  static const _interFileDelay = Duration(seconds: 1);
-  static const _stallThreshold = 3;
+  static const _maxRetries = 4;
+  static const _retryDelay = Duration(seconds: 5);
+  static const _interFileDelay = Duration(seconds: 2);
+  static const _stallThreshold = 10;
 
   Future<void> _downloadWithStallDetection(String name, File dest) async {
     final completer = Completer<void>();
