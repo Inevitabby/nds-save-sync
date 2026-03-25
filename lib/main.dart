@@ -39,6 +39,7 @@ class App extends StatelessWidget {
             ),
       ),
       home: const AppShell(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
