@@ -97,8 +97,13 @@ class _SyncButtonState extends State<SyncButton>
             color: color,
             boxShadow: [
               BoxShadow(
-                color: color.withValues(alpha: 0.3),
-                blurRadius: 4,
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+              BoxShadow(
+                color: color.withValues(alpha: 0.2),
+                blurRadius: 2,
                 spreadRadius: 2,
               ),
             ],
@@ -115,7 +120,8 @@ class _SyncButtonState extends State<SyncButton>
                 _label(widget.state),
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: cs.onPrimary,
-                  letterSpacing: 1.4,
+                  letterSpacing: 2,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],

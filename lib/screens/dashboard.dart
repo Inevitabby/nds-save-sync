@@ -169,30 +169,16 @@ class _DashboardState extends ConsumerState<Dashboard> {
       data: (appState) {
         return Scaffold(
           body: SafeArea(
-            child: Column(
-              children: [
-                const Expanded(
-                  flex: 2,
-                  child: SizedBox.shrink(),
-                ),
-                Expanded(
-                  flex: 4,
-                  child: Center(
-                    child: SyncButton(
-                      state: appState.syncState,
-                      onPressed: () => _onPressed(appState),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: _NotificationsPanel(appState: appState),
-                ),
-                const Expanded(
-                  child: SizedBox.shrink(),
-                ),
-              ],
-            ),
+            child: Column(children: [
+              const Spacer(flex: 3),
+              SyncButton(
+                state: appState.syncState,
+                onPressed: () => _onPressed(appState),
+              ),
+              const SizedBox(height: 48),
+              _NotificationsPanel(appState: appState),
+              const Spacer(flex: 2),
+            ]),
           ),
         );
       },
@@ -229,6 +215,13 @@ class _NotificationsPanel extends StatelessWidget {
             decoration: BoxDecoration(
               color: cs.surfaceContainerLow,
               borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
