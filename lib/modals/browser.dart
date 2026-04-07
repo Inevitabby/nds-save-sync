@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ftpconnect/ftpconnect.dart';
-import 'package:nds_save_sync/modals/modal.dart';
 import 'package:nds_save_sync/providers.dart';
 import 'package:nds_save_sync/util/save_filename.dart';
 
@@ -67,24 +66,33 @@ class _BrowserState extends ConsumerState<Browser> {
   // TODO Should phone back button be hooked-up to navigating backwards when not at root?
   @override
   Widget build(BuildContext context) {
-    return Modal(
-      title: 'Select Backup Folder',
-      subtitle: 'Navigate to the folder containing your .sav files.',
+    final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Divider(height: 16),
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.55,
-            ),
+          Text(
+            'Select Backup Folder',
+            style: tt.titleLarge,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Navigate to the folder containing your .sav files.',
+            style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1),
+          Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
                 : Scrollbar(
                     thumbVisibility: true,
                     child: ListView.builder(
-                      shrinkWrap: true,
                       itemCount: _files.length + 1,
                       itemBuilder: (context, index) {
                         if (index == 0) {
@@ -100,33 +108,29 @@ class _BrowserState extends ConsumerState<Browser> {
                     ),
                   ),
           ),
-          const Divider(height: 16),
-          Padding(
-            padding: const EdgeInsetsGeometry.symmetric(horizontal: 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(_currentPath),
-                      Text(
-                        '$_saveCount saves are here',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
+          const Divider(height: 1),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_currentPath, style: tt.bodySmall),
+                    Text(
+                      '$_saveCount saves are here',
+                      style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                FilledButton(
-                  onPressed: () => Navigator.pop(context, _currentPath),
-                  child: const Text('Use This Folder'),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 8),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, _currentPath),
+                child: const Text('Use This Folder'),
+              ),
+            ],
           ),
         ],
       ),
@@ -136,12 +140,12 @@ class _BrowserState extends ConsumerState<Browser> {
   Widget _entry(FTPEntry file) {
     final isSave = SaveFilename.isSave(file.name);
     final dim    = !isSave && _saveCount > 0;
- 
+
     IconData icon() {
       if (file.type == FTPEntryType.dir) return Icons.folder;
       return isSave ? Icons.save : Icons.insert_drive_file;
     }
- 
+
     return Opacity(
       opacity: dim ? 0.7 : 1,
       child: ListTile(
