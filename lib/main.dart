@@ -1,9 +1,6 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:nds_save_sync/modals/onboarding.dart';
-import 'package:nds_save_sync/persistence.dart';
 import 'package:nds_save_sync/screens/archive.dart';
 import 'package:nds_save_sync/screens/dashboard.dart';
 
@@ -58,7 +55,6 @@ class _AppShellState extends State<AppShell> {
   void initState() {
     super.initState();
     _controller.addListener(() => setState(() {}));
-    unawaited(_onboardingCheck());
   }
 
   Widget _dots() {
@@ -77,17 +73,6 @@ class _AppShellState extends State<AppShell> {
           ),
         );
       }).toList(),
-    );
-  }
-
-  Future<void> _onboardingCheck() async {
-    final persisted = await Persistence.load();
-    if (persisted.onboardingDone) return;
-    if (!mounted) return;
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Onboarding(),
     );
   }
 
