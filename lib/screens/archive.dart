@@ -196,7 +196,6 @@ class _GameTileState extends State<_GameTile>
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
         tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        backgroundColor: cs.surfaceContainerHigh,
         shape: tileBorder,
         collapsedShape: tileBorder,
         onExpansionChanged: (expanded) {
@@ -334,7 +333,7 @@ class _TimelineEntry extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Material(
-                  color: cs.surfaceContainerHighest,
+                  color: cs.surfaceContainerHigh,
                   borderRadius: BorderRadius.circular(8),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(8),
