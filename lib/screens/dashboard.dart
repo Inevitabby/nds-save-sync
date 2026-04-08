@@ -80,12 +80,11 @@ class _DashboardState extends ConsumerState<Dashboard> {
         // First connection: pick the remote save folder
         await appState.ftp.changeDir('/');
         if (!mounted) return;
-        final selectedPath = await showDialog<String>(
+        final selectedPath = await showModalBottomSheet<String>(
           context: context,
-          builder: (_) => const Dialog(
-            insetPadding: EdgeInsets.all(16),
-            child: Browser(),
-          ),
+          isScrollControlled: true,
+          showDragHandle: true,
+          builder: (_) => const Browser(),
         );
         if (selectedPath == 'error') {
           await _showIpDialog(appState, controller);
