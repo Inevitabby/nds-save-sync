@@ -116,7 +116,6 @@ class _Section extends StatelessWidget {
           child: Text(
             label.toUpperCase(),
             style: tt.labelSmall?.copyWith(
-              color: cs.primary,
               letterSpacing: 1.2,
               fontWeight: FontWeight.w600,
             ),
