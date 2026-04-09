@@ -400,11 +400,14 @@ class _TimelineEntry extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           // bait and switch (tempt the user to click)
-                          Icon(
-                            Icons.adaptive.share,
-                            size: 18,
-                            color: cs.onSurfaceVariant.withValues(alpha: 0.9),
-                          ),
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            child: Icon(
+                              Icons.adaptive.share,
+                              size: 18,
+                              color: cs.onSurfaceVariant.withValues(alpha: 0.9),
+                            ),
+                          )
                         ],
                       ),
                     ),
