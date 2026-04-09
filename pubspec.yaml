@@ -49,6 +49,7 @@ dependencies:
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.7
   wakelock_plus: ^1.5.1
+  hooks_riverpod: ^3.3.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

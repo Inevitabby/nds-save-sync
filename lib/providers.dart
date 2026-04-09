@@ -78,6 +78,28 @@ class AppModel {
   );
 
   AppModel clearNotification() => copyWith(notification: '');
+
+  AppModel clearSaveDir() => AppModel(
+    ftp: ftp,
+    archiveUri: archiveUri,
+    consecutiveConnectFailures: consecutiveConnectFailures,
+    lastIp: lastIp,
+    lastPort: lastPort,
+    lastSyncResult: lastSyncResult,
+    notification: notification,
+    syncState: syncState,
+  );
+
+  AppModel clearArchiveUri() => AppModel(
+    ftp: ftp,
+    consecutiveConnectFailures: consecutiveConnectFailures,
+    lastIp: lastIp,
+    lastPort: lastPort,
+    lastSyncResult: lastSyncResult,
+    notification: notification,
+    saveDir: saveDir,
+    syncState: syncState,
+  );
 }
 
 /*
@@ -159,11 +181,22 @@ class AppController extends AsyncNotifier<AppModel> {
     return success;
   }
 
+  Future<void> setDevice(String ip, int port) async {
+    _update(_model.copyWith(lastIp: ip, lastPort: port));
+    await Persistence.saveLastIp(ip);
+    await Persistence.saveLastPort(port);
+  }
+
   // TODO Perhaps calling all the NDS stuff "remoteX" would be better...
   Future<void> setSaveDir(String path) async {
     debugPrint('[AppController.setSaveDir] Setting save dir to "$path"');
     _update(_model.copyWith(saveDir: path));
     await Persistence.saveSaveDir(path);
+  }
+
+  Future<void> resetSaveDir() async {
+    _update(_model.clearSaveDir());
+    await Persistence.clearSaveDir();
   }
 
   // Returns the picked URI, or null if the user cancelled.
@@ -179,6 +212,11 @@ class AppController extends AsyncNotifier<AppModel> {
       _update(_model.copyWith(notification: 'User cancelled folder selection.'));
     }
     return uri;
+  }
+
+  Future<void> resetArchiveUri() async {
+    _update(_model.clearArchiveUri());
+    await Persistence.clearArchiveUri();
   }
 
   void clearNotification() => _update(_model.clearNotification());

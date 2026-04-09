@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nds_save_sync/screens/archive.dart';
 import 'package:nds_save_sync/screens/dashboard.dart';
+import 'package:nds_save_sync/screens/settings.dart';
 
 void main() {
   runApp(
@@ -49,7 +50,7 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  final _controller = PageController();
+  final _controller = PageController(initialPage: 1);
 
   @override
   void initState() {
@@ -58,10 +59,10 @@ class _AppShellState extends State<AppShell> {
   }
 
   Widget _dots() {
-    final page = _controller.hasClients ? (_controller.page ?? 0) : 0;
+    final page = _controller.hasClients ? (_controller.page ?? 1) : 1;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [0, 1].map((i) {
+      children: [0, 1, 2].map((i) {
         final opacity = 1.0 - (page - i).abs().clamp(0.0, 0.7);
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -89,6 +90,7 @@ class _AppShellState extends State<AppShell> {
         PageView(
           controller: _controller,
           children: const [
+            Settings(),
             _KeepAlive(child: Dashboard()),
             Archive(),
           ],

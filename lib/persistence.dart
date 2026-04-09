@@ -33,9 +33,19 @@ class Persistence {
     await prefs.setString(_keySaveDir, path);
   }
 
+  static Future<void> clearSaveDir() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keySaveDir);
+  }
+
   static Future<void> saveArchiveUri(String uri) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyArchiveUri, uri);
+  }
+
+  static Future<void> clearArchiveUri() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keyArchiveUri);
   }
 
   static Future<void> setOnboardingDone() async {
