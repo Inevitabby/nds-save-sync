@@ -76,6 +76,8 @@ class Archive extends ConsumerWidget {
     String? archiveUri,
     List<SaveGroup> groups,
   ) {
+    final tt = Theme.of(context).textTheme;
+
     if (archiveUri == null) {
       return Center(
         child: Column(
@@ -133,16 +135,24 @@ class Archive extends ConsumerWidget {
         ),
       );
     }
-    return ListView.builder(
-      padding: EdgeInsets.fromLTRB(
-        16, 
-        20, 
-        16, 
-        4 + MediaQuery.paddingOf(context).bottom,
+    return SafeArea(child: ListView.builder(
+      padding: const EdgeInsets.fromLTRB(
+        20,
+        24,
+        20,
+        4 + 48, // nav dots
       ),
-      itemCount: groups.length,
-      itemBuilder: (context, i) => _GameTile(group: groups[i]),
-    );
+      itemCount: groups.length + 1,
+      itemBuilder: (context, i) { 
+        if (i == 0) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: Text('Archive', style: tt.headlineSmall),
+          );
+        }
+        return _GameTile(group: groups[i-1]);
+      },
+    ));
   }
 }
 
