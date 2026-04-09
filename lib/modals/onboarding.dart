@@ -26,18 +26,18 @@ class Onboarding extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Wirelessly back up saves from your NDS to your phone over Wi-Fi.',
+                'Wirelessly back up your saves.',
                 style: textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
               Text('Before you connect make sure:', style: textTheme.titleSmall),
               const SizedBox(height: 8),
-              const _CheckRow(text: 'Your console is on the same network as your phone'),
-              const _CheckRow(text: 'FTP server is running on your console'),
-              const _CheckRow(text: 'Your console is showing an IP address'),
+              const _CheckRow(text: 'Your console is on same network as your phone.'),
+              const _CheckRow(text: 'FTP server is running on your console.'),
+              const _CheckRow(text: 'Your console is showing an IP address.'),
               const SizedBox(height: 20),
-              Text('Network setup', style: textTheme.titleSmall),
+              Text('Network setup:', style: textTheme.titleSmall),
               const SizedBox(height: 8),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,7 +53,7 @@ class Onboarding extends StatelessWidget {
                   ),
                   Expanded(
                     child: Text(
-                      'Android Settings → Mobile Hotspot.\nSet Security to None, Band to 2.4 GHz.',
+                      'Settings → Mobile Hotspot -> Password.\nSet Security to None, Band to 2.4 GHz.',
                       style: textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -63,6 +63,7 @@ class Onboarding extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(
                     width: 48,
@@ -75,7 +76,7 @@ class Onboarding extends StatelessWidget {
                   ),
                   Expanded(
                     child: Text(
-                      'Connect both devices to the same Wi-Fi network.',
+                      'Just connect both devices to the same Wi-Fi network.',
                       style: textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -87,11 +88,6 @@ class Onboarding extends StatelessWidget {
               FilledButton(
                 onPressed: () => _dismiss(context),
                 child: const Text('Got it'),
-              ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () => _dismiss(context),
-                child: const Text('Skip'),
               ),
             ],
           ),
