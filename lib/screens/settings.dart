@@ -174,6 +174,7 @@ class _IpPortTile extends HookConsumerWidget {
                 flex: 4,
                 child: TextField(
                   controller: ipCtrl,
+                  onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
                   decoration: const InputDecoration(
                     labelText: 'IP Address',
                     border: OutlineInputBorder(),
@@ -187,6 +188,7 @@ class _IpPortTile extends HookConsumerWidget {
                 flex: 2,
                 child: TextField(
                   controller: portCtrl,
+                  onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
                   decoration: const InputDecoration(
                     labelText: 'Port',
                     border: OutlineInputBorder(),
