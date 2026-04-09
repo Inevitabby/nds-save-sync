@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nds_save_sync/modals/browser.dart';
 import 'package:nds_save_sync/modals/ip_entry.dart';
+import 'package:nds_save_sync/modals/onboarding.dart';
 import 'package:nds_save_sync/persistence.dart';
 import 'package:nds_save_sync/providers.dart';
 import 'package:nds_save_sync/sync.dart';
-import 'package:nds_save_sync/widgets/onboarding.dart';
 import 'package:nds_save_sync/widgets/sync_button.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -24,7 +24,6 @@ class Dashboard extends ConsumerStatefulWidget {
 
 class _DashboardState extends ConsumerState<Dashboard> {
   bool _dialogOpen = false;
-  bool _showOnboarding = false;
 
   @override
   void initState() {
@@ -34,8 +33,11 @@ class _DashboardState extends ConsumerState<Dashboard> {
 
   Future<void> _checkOnboarding() async {
     final persisted = await Persistence.load();
-    if (!persisted.onboardingDone && mounted) {
-      setState(() => _showOnboarding = true);
+    if ((!persisted.onboardingDone && mounted) || kDebugMode) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => const Onboarding(),
+      );
     }
   }
 
