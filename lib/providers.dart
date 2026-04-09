@@ -205,7 +205,7 @@ class AppController extends AsyncNotifier<AppModel> {
     final uri = await SafFolderPicker.pickFolder();
     if (uri != null) {
       debugPrint('[AppController.pickArchiveUri] Archive URI set to $uri');
-      _update(_model.copyWith(archiveUri: uri, notification: ''));
+      _update(_model.copyWith(archiveUri: uri));
       await Persistence.saveArchiveUri(uri);
     } else {
       debugPrint('[AppController.pickArchiveUri] User cancelled folder selection');
