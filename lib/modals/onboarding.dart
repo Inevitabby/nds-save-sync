@@ -19,7 +19,7 @@ class Onboarding extends StatelessWidget {
       insetPadding: const EdgeInsets.all(24),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 400),
-        child: Modal(
+        child: SingleChildScrollView(child: Modal(
           title: 'NDS Save Sync',
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -91,7 +91,7 @@ class Onboarding extends StatelessWidget {
               ),
             ],
           ),
-        ),
+        )),
       ),
     );
   }
