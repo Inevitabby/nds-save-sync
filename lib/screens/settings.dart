@@ -171,7 +171,7 @@ class _IpPortTile extends HookConsumerWidget {
           Row(
             children: [
               Expanded(
-                flex: 3,
+                flex: 4,
                 child: TextField(
                   controller: ipCtrl,
                   decoration: const InputDecoration(
@@ -184,6 +184,7 @@ class _IpPortTile extends HookConsumerWidget {
               ),
               const SizedBox(width: 10),
               Expanded(
+                flex: 2,
                 child: TextField(
                   controller: portCtrl,
                   decoration: const InputDecoration(
