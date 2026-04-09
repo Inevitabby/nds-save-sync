@@ -115,7 +115,7 @@ class _Section extends StatelessWidget {
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             label.toUpperCase(),
-            style: tt.labelSmall?.copyWith(
+            style: tt.labelMedium?.copyWith(
               letterSpacing: 1.2,
               fontWeight: FontWeight.w600,
             ),
