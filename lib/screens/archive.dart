@@ -134,7 +134,12 @@ class Archive extends ConsumerWidget {
       );
     }
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+      padding: EdgeInsets.fromLTRB(
+        16, 
+        20, 
+        16, 
+        4 + MediaQuery.paddingOf(context).bottom,
+      ),
       itemCount: groups.length,
       itemBuilder: (context, i) => _GameTile(group: groups[i]),
     );
