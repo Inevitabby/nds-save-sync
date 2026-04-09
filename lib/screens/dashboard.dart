@@ -187,16 +187,14 @@ class _DashboardState extends ConsumerState<Dashboard> {
         return Scaffold(
           body: SafeArea(
             child: Column(children: [
-              if (_showOnboarding)
-                OnboardingCard(
-                  onDismiss: () => setState(() => _showOnboarding = false),
-                ),
               const Spacer(flex: 3),
               SyncButton(
                 state: appState.syncState,
                 onPressed: () => _onPressed(appState),
               ),
-              const SizedBox(height: 48),
+              const Flexible(
+                child: SizedBox(height: 48),
+              ),
               _NotificationsPanel(appState: appState),
               const Spacer(flex: 2),
             ]),
