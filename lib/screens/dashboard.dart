@@ -220,8 +220,6 @@ class _NotificationsPanel extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     final progress = appState.syncProgress;
 
-    if (!_hasContent) return const SizedBox.shrink();
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
       child: Center(
@@ -229,64 +227,67 @@ class _NotificationsPanel extends StatelessWidget {
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeInOut,
           alignment: Alignment.topCenter,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: cs.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (progress != null) ...[
-                  Text(
-                    progress.phase == SyncPhase.archiving
-                        ? 'Archiving...'
-                        : _progressText(progress),
-                    style: tt.bodySmall,
-                    textAlign: TextAlign.center,
+          child: Opacity(
+            opacity: _hasContent ? 1.0 : 0.0,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: cs.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
                   ),
-                  const SizedBox(height: 6),
-                  if (progress.phase == SyncPhase.archiving)
-                    const LinearProgressIndicator()
-                  else
-                    TweenAnimationBuilder<double>(
-                      tween: Tween(end: progress.fraction),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (progress != null) ...[
+                    Text(
+                      progress.phase == SyncPhase.archiving
+                          ? 'Archiving...'
+                          : _progressText(progress),
+                      style: tt.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 6),
+                    if (progress.phase == SyncPhase.archiving)
+                      const LinearProgressIndicator()
+                    else
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(end: progress.fraction),
+                        duration: const Duration(milliseconds: 100),
+                        builder: (_, value, _) =>
+                            LinearProgressIndicator(value: value),
+                      ),
+                  ] else
+                    AnimatedSwitcher(
                       duration: const Duration(milliseconds: 100),
-                      builder: (_, value, _) =>
-                          LinearProgressIndicator(value: value),
-                    ),
-                ] else
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 100),
-                    child: Column(
-                      key: ValueKey(appState.notification),
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (appState.syncState == SyncState.success)
-                          Text(
-                            'Swipe left to view archive',
-                            style: tt.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w600,
+                      child: Column(
+                        key: ValueKey(appState.notification),
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (appState.syncState == SyncState.success)
+                            Text(
+                              'Swipe left to view archive',
+                              style: tt.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
+                          Text(
+                            appState.notification!,
+                            style: tt.bodySmall,
+                            textAlign: TextAlign.center,
                           ),
-                        Text(
-                          appState.notification!,
-                          style: tt.bodySmall,
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
