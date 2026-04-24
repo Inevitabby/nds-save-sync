@@ -24,6 +24,7 @@ class AppModel {
     this.lastPort,
     this.lastSyncResult,
     this.notification,
+    this.passiveMode = true,
     this.saveDir,
     this.syncProgress,
     this.syncState = SyncState.idle,
@@ -36,6 +37,7 @@ class AppModel {
   final int? lastPort;
   final SyncResult? lastSyncResult;
   final String? notification;
+  final bool passiveMode;
   final String? saveDir;
   final SyncProgress? syncProgress;
   final SyncState syncState;
@@ -47,6 +49,7 @@ class AppModel {
     int? lastPort,
     SyncResult? lastSyncResult,
     String? notification,
+    bool? passiveMode,
     String? saveDir,
     SyncProgress? syncProgress,
     SyncState? syncState,
@@ -59,6 +62,7 @@ class AppModel {
       lastPort: lastPort ?? this.lastPort,
       lastSyncResult: lastSyncResult ?? this.lastSyncResult,
       notification: notification ?? this.notification,
+      passiveMode: passiveMode ?? this.passiveMode,
       saveDir: saveDir ?? this.saveDir,
       syncProgress: syncProgress ?? this.syncProgress,
       syncState: syncState ?? this.syncState,
@@ -73,6 +77,7 @@ class AppModel {
     lastPort: lastPort,
     lastSyncResult: lastSyncResult,
     notification: notification,
+    passiveMode: passiveMode,
     saveDir: saveDir,
     syncState: syncState,
   );
@@ -87,6 +92,7 @@ class AppModel {
     lastPort: lastPort,
     lastSyncResult: lastSyncResult,
     notification: notification,
+    passiveMode: passiveMode,
     syncState: syncState,
   );
 
@@ -97,6 +103,7 @@ class AppModel {
     lastPort: lastPort,
     lastSyncResult: lastSyncResult,
     notification: notification,
+    passiveMode: passiveMode,
     saveDir: saveDir,
     syncState: syncState,
   );
@@ -123,6 +130,7 @@ class AppController extends AsyncNotifier<AppModel> {
       lastPort: persisted.lastPort,
       saveDir: persisted.saveDir,
       archiveUri: persisted.archiveUri,
+      passiveMode: persisted.passiveMode,
       notification: 'Ready to connect to NDS.',
     );
   }
@@ -140,7 +148,7 @@ class AppController extends AsyncNotifier<AppModel> {
       ),
     );
 
-    final success = await _model.ftp.connect(ip, port);
+    final success = await _model.ftp.connect(ip, port, passive: _model.passiveMode);
     if (success) {
       // Sanity-check the connection before declaring success
       try {
@@ -217,6 +225,11 @@ class AppController extends AsyncNotifier<AppModel> {
   Future<void> resetArchiveUri() async {
     _update(_model.clearArchiveUri());
     await Persistence.clearArchiveUri();
+  }
+
+  Future<void> setPassiveMode(bool passive) async {
+    _update(_model.copyWith(passiveMode: passive));
+    await Persistence.savePassiveMode(passive);
   }
 
   void clearNotification() => _update(_model.clearNotification());

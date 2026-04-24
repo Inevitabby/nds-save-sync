@@ -27,6 +27,13 @@ class Settings extends ConsumerWidget {
                   initialIp: appState?.lastIp,
                   initialPort: appState?.lastPort,
                 ),
+                const Divider(height: 1, indent: 16),
+                SwitchListTile(
+                  title: const Text('Passive mode (FTP)'),
+                  subtitle: const Text('Disable if connection stalls'),
+                  value: appState?.passiveMode ?? true,
+                  onChanged: (v) => ref.read(appProvider.notifier).setPassiveMode(v),
+                ),
               ],
             ),
             const SizedBox(height: 20),

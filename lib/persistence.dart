@@ -6,6 +6,7 @@ class Persistence {
   static const _keySaveDir          = 'save_dir';
   static const _keyArchiveUri       = 'archive_uri';
   static const _keyOnboardingDone   = 'onboarding_complete';
+  static const _keyPassiveMode      = 'passive_mode';
 
   static Future<PersistedState> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -15,6 +16,7 @@ class Persistence {
       saveDir:         prefs.getString(_keySaveDir),
       archiveUri:      prefs.getString(_keyArchiveUri),
       onboardingDone:  prefs.getBool(_keyOnboardingDone) ?? false,
+      passiveMode:     prefs.getBool(_keyPassiveMode) ?? true,
     );
   }
 
@@ -52,6 +54,11 @@ class Persistence {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyOnboardingDone, true);
   }
+
+  static Future<void> savePassiveMode(bool passive) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyPassiveMode, passive);
+  }
 }
 
 class PersistedState {
@@ -61,6 +68,7 @@ class PersistedState {
     this.saveDir,
     this.archiveUri,
     this.onboardingDone = false,
+    this.passiveMode = true,
   });
 
   final String? lastIp;
@@ -68,4 +76,5 @@ class PersistedState {
   final String? saveDir;
   final String? archiveUri;
   final bool onboardingDone;
+  final bool passiveMode;
 }

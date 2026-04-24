@@ -12,8 +12,9 @@ class FtpClient {
 
   bool get isConnected => _client != null;
 
-  Future<bool> connect(String ip, int port) async {
+  Future<bool> connect(String ip, int port, {bool passive = true}) async {
     final client = FTPConnect(ip, port: port, timeout: 10);
+    client.transferMode = passive ? TransferMode.passive : TransferMode.active;
     try {
       await client.connect();
       _client = client;
