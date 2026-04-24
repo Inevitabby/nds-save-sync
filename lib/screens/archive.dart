@@ -206,7 +206,7 @@ class _GameTileState extends State<_GameTile>
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       color: cs.surfaceContainerLow,
-      elevation: 4,
+      elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: borderRadius),
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
