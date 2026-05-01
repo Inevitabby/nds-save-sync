@@ -15,7 +15,7 @@
 
 <div align="center">
   <a href="https://cloud.disroot.org/s/W4fjaYXDFbBnHJz">
-    <img src="assets/thumbnail.jpg" width="220" alt="Watch Demo"/>
+    <img src="assets/thumbnail.png" width="220" alt="Watch Demo"/>
   </a>
 </div>
 
