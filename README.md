@@ -11,6 +11,14 @@
 - Preserve complete save history with built-in timeline archiving.
 - Backups are stored in user-accessible folders for easy integration with Nextcloud, Google Drive, and other sync tools.
 
+# Demo Video
+
+<div align="center">
+  <a href="https://cloud.disroot.org/s/W4fjaYXDFbBnHJz">
+    <img src="assets/thumbnail.jpg" width="220" alt="Watch Demo"/>
+  </a>
+</div>
+
 # Screenshots
 
 <table align="center">
