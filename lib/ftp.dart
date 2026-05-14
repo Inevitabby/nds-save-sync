@@ -111,12 +111,23 @@ class FtpClient {
   static const _interFileDelay = Duration(seconds: 2);
   static const _stallThreshold = 10;
 
-  Future<void> _downloadWithStallDetection(String name, File dest) async {
+  Future<void> _downloadWithStallDetection(
+    String name,
+    File dest, {
+    void Function(int bytes)? onBytes,
+  }) async {
     final completer = Completer<void>();
     var lastProgress = DateTime.now();
 
     final watchdog = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (DateTime.now().difference(lastProgress).inSeconds >= _stallThreshold) {
+      // Report downloaded
+      try {
+        if (dest.existsSync()) onBytes?.call(dest.lengthSync());
+      } catch (_) {}
+
+      // Stall detection
+      if (DateTime.now().difference(lastProgress).inSeconds >=
+          _stallThreshold) {
         t.cancel();
         _client = null;
         if (!completer.isCompleted) {
@@ -127,16 +138,18 @@ class FtpClient {
 
     unawaited(
       _client!.downloadFile(name, dest, onProgress: (received, total, _) {
-        lastProgress = DateTime.now();
-      }).then((_) {
+          lastProgress = DateTime.now();
+        },
+      )
+      .then((_) {
         watchdog.cancel();
         if (!completer.isCompleted) completer.complete();
-      }).catchError((Object e) {
-        debugPrint('[FtpClient._downloadWithStallDetection] Error downloading "$name": $e');
+      })
+      .catchError((Object e) {
         watchdog.cancel();
         _client = null;
         if (!completer.isCompleted) completer.completeError(e);
-      })
+      }),
     );
 
     return completer.future;
@@ -145,7 +158,7 @@ class FtpClient {
   Future<DownloadResult> downloadSaves({
     required String remoteDir,
     required Directory stagingDir,
-    void Function(String filename, int done, int total)? onProgress,
+    void Function(String filename, int done, int total, int bytes)? onProgress,
   }) async {
     await _ensureConnected();
 
@@ -164,14 +177,18 @@ class FtpClient {
 
     for (final entry in saves) {
       final localFile = File(p.join(stagingDir.path, entry.name));
-      onProgress?.call(entry.name, done, saves.length);
+      onProgress?.call(entry.name, done, saves.length, 0);
       var success = false;
 
       for (var attempt = 1; attempt <= _maxRetries; attempt++) {
         try {
           await _ensureConnected();
           await _client!.changeDirectory(remoteDir);
-          await _downloadWithStallDetection(entry.name, localFile);
+          await _downloadWithStallDetection(
+            entry.name,
+            localFile,
+            onBytes: (bytes) => onProgress?.call(entry.name, done, saves.length, bytes),
+          );
           success = true;
           break;
         } catch (e) {

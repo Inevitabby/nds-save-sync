@@ -258,14 +258,15 @@ class AppController extends AsyncNotifier<AppModel> {
       final downloadResult = await _model.ftp.downloadSaves(
         remoteDir: _model.saveDir!,
         stagingDir: stagingDir,
-        onProgress: (filename, done, total) {
-          debugPrint('[AppController.sync] Downloading $filename ($done/$total)');
+        onProgress: (filename, done, total, bytes) {
+          debugPrint('[AppController.sync] Downloading $filename ($done/$total, $bytes bytes)');
           _update(
             _model.copyWith(
               syncProgress: SyncProgress(
                 currentFile: filename,
                 done: done,
                 total: total,
+                bytesDownloaded: bytes,
               ),
             ),
           );

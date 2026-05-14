@@ -296,10 +296,19 @@ class _NotificationsPanel extends StatelessWidget {
   }
 }
 
+String _formatBytes(int bytes) {
+  if (bytes < 1024) return '${bytes}B';
+  if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)}KB';
+  return '${(bytes / (1024 * 1024)).toStringAsFixed(2)}MB';
+}
+
 String _progressText(SyncProgress progress) {
   final verb = switch (progress.phase) {
     SyncPhase.downloading => 'Fetching from NDS...',
     SyncPhase.archiving   => 'Archiving...',
   };
-  return '$verb\n${progress.currentFile}';
+  final bytes = progress.bytesDownloaded > 0
+      ? ' (${_formatBytes(progress.bytesDownloaded)})'
+      : '';
+  return '$verb\n${progress.currentFile}$bytes';
 }

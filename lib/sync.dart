@@ -29,12 +29,14 @@ class SyncProgress {
     required this.done,
     required this.total,
     this.phase = SyncPhase.downloading,
+    this.bytesDownloaded = 0,
   });
  
   final String currentFile;
   final int done;
   final int total;
   final SyncPhase phase;
+  final int bytesDownloaded;
 
   int get fileIndex => done;
 
@@ -110,7 +112,7 @@ Future<SyncResult> syncToArchive({
     onProgress?.call(filename, done, total);
   }
  
-  debugPrint('[syncToArchive] Done: ${changed.length} changed, ${unchanged.length} unchanged, ${failures.length} failures');
+  debugPrint('[syncToArchive] Done: ${changed.length} changed, ${unchanged.length} unchanged, ${changed.length} failures');
   return SyncResult(
     changed: changed,
     unchanged: unchanged,
